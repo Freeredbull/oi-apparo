@@ -167,7 +167,7 @@ async function loadMarqueeTopPosts() {
     });
 
     const topTextOnly = scoredPosts
-      .filter(post => !post.image_url)
+      .filter(post => post.image_url == null || post.image_url === '')
       .sort((a, b) => b.score - a.score)
       .slice(0, 7)
       .map(p => `📰 ${p.content.slice(0, 100).replace(/\n/g, ' ')}`);
