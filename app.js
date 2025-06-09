@@ -12,6 +12,25 @@ const horseSound = new Audio('/assets/horse.mp3');
 
 let nixtopMode = false;
 
+const btnApparos = document.getElementById('mode-apparos');
+const btnNixtop = document.getElementById('mode-nixtop');
+
+btnApparos.addEventListener('click', () => {
+  nixtopMode = false;
+  document.documentElement.classList.remove('nixtop-active');
+  btnApparos.classList.add('active');
+  btnNixtop.classList.remove('active');
+  loadPosts(false);
+});
+
+btnNixtop.addEventListener('click', () => {
+  nixtopMode = true;
+  document.documentElement.classList.add('nixtop-active');
+  btnApparos.classList.remove('active');
+  btnNixtop.classList.add('active');
+  loadPosts(false);
+});
+
 document.getElementById('toggle-nixtop').addEventListener('click', () => {
   nixtopMode = !nixtopMode;
   document.documentElement.classList.toggle('nixtop-active', nixtopMode);
