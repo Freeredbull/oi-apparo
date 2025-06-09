@@ -156,7 +156,7 @@ async function loadPosts() {
 
   postsDiv.appendChild(div);
 });
-
+} 
 loadPosts();
 
 async function loadMarqueeTopPosts() {
