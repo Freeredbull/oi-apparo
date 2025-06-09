@@ -160,53 +160,47 @@ async function loadPosts(append = true) {
   const postsDiv = document.getElementById('posts');
   if (!append) postsDiv.innerHTML = '';
 
-posts.forEach(post => {
-  const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
-  const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
-  const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
+  posts.forEach(post => {
+    const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
+    const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
+    const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
 
-let content = post.content;
-if (nixtopMode) {
-  content = content.replace(/apparo/gi, 'Nixtopapparo');
-}
-const hasApparo = content.toLowerCase().includes('apparo');
+    // 🧠 Replace 'apparo' if nixtopMode is on
+    let content = post.content;
+    if (nixtopMode) {
+      content = content.replace(/apparo/gi, 'Nixtopapparo');
+    }
 
-  // Determine emoji and text based on mode
-  if (nixtopMode) {
-  post.content = post.content.replace(/apparo/gi, 'Nixtopapparo');
-}
+    const hasApparo = content.toLowerCase().includes('apparo');
+    const emojiHorse = nixtopMode ? '🦇' : '🐎';
 
-hasApparo = post.content.toLowerCase().includes('apparo');
-const emojiHorse = nixtopMode ? '🦇' : '🐎';
+    const div = document.createElement('div');
+    div.className = 'post';
 
-  const div = document.createElement('div');
-  div.className = 'post';
+    if (hasApparo && !nixtopMode) {
+      div.classList.add('trigger-apparo');
+      horseSound.currentTime = 0;
+      horseSound.play().catch(() => {
+        console.warn('🔇 Horse sound blocked until user interacts.');
+      });
+    }
 
-  if (hasApparo && !nixtopMode) {
-    div.classList.add('trigger-apparo');
-    horseSound.currentTime = 0;
-    horseSound.play().catch(() => {
-      console.warn('🔇 Horse sound blocked until user interacts.');
-    });
-  }
+    div.innerHTML = `
+      <p>${hasApparo ? emojiHorse + ' ' : ''}${content}</p>
+      ${post.image_url ? `<img src="${post.image_url}" />` : ''}
+      <div style="margin-top: 10px; display: flex; gap: 10px;">
+        <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
+        <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
+        <button onclick="vote('${post.id}', 'horse')">${emojiHorse} ${horseVotes}</button>
+      </div>
+    `;
 
-  div.innerHTML = `
-    <p>${hasApparo ? emojiHorse + ' ' : ''}${content}</p>
-    ${post.image_url ? `<img src="${post.image_url}" />` : ''}
-    <div style="margin-top: 10px; display: flex; gap: 10px;">
-      <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
-      <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
-      <button onclick="vote('${post.id}', 'horse')">${emojiHorse} ${horseVotes}</button>
-    </div>
-  `;
-
-  postsDiv.appendChild(div);
-});
+    postsDiv.appendChild(div);
+  });
 
   postPage++;
   loadingPosts = false;
 }
-
 
 async function loadMarqueeTopPosts() {
   console.log('✅ loadMarqueeTopPosts() started');
