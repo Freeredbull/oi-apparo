@@ -176,7 +176,7 @@ const hasApparo = content.toLowerCase().includes('apparo');
   post.content = post.content.replace(/apparo/gi, 'Nixtopapparo');
 }
 
-const hasApparo = post.content.toLowerCase().includes('apparo');
+hasApparo = post.content.toLowerCase().includes('apparo');
 const emojiHorse = nixtopMode ? '🦇' : '🐎';
 
   const div = document.createElement('div');
