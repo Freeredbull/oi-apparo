@@ -127,6 +127,7 @@ async function loadPosts() {
   posts.forEach(post => {
     const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
     const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
+    const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
 
     const div = document.createElement('div');
     div.className = 'post';
@@ -136,6 +137,7 @@ async function loadPosts() {
       <div style="margin-top: 10px; display: flex; gap: 10px;">
         <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
         <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
+        <button onclick="vote('${post.id}', 'horse')">🐎 ${horseVotes}</button>
       </div>
     `;
     postsDiv.appendChild(div);
