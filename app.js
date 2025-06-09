@@ -2,30 +2,37 @@ const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Generate or load unique ID per visitor
-let userId = localStorage.getItem("oiap_user_id");
-if (!userId) {
-  userId = crypto.randomUUID();
-  localStorage.setItem("oiap_user_id", userId);
-
-  async function updateOnlineStatus() {
-  await client
-    .from("online_users")
-    .upsert([{ id: userId, last_seen: new Date().toISOString() }]);
+// Get or create a unique browser session ID
+let sessionId = localStorage.getItem('online_user_id');
+if (!sessionId) {
+  sessionId = crypto.randomUUID();
+  localStorage.setItem('online_user_id', sessionId);
 }
-setInterval(updateOnlineStatus, 60000); // every 60 sec
-updateOnlineStatus(); // immediately on load
 
-  async function fetchOnlineCount() {
-  const { data, count } = await client
-    .from("online_users")
-    .select("*", { count: "exact" })
-    .gt("last_seen", new Date(Date.now() - 2 * 60 * 1000).toISOString());
+// Every 60 seconds: update presence + fetch count
+async function refreshOnlineStatus() {
+  const now = new Date().toISOString();
 
-  document.getElementById("onlineCount").innerText = `${count} online now`;
+  // Upsert this session's row
+  await supabase.from('online_users').upsert({
+    id: sessionId,
+    last_seen: now
+  });
+
+  // Get count of users seen in the past 2 minutes
+  const { data, error, count } = await supabase
+    .from('online_users')
+    .select('id', { count: 'exact' })
+    .gte('last_seen', new Date(Date.now() - 2 * 60 * 1000).toISOString());
+
+  if (count !== null) {
+    document.getElementById('online-count').textContent = `🟢 ${count} online now`;
+  }
 }
-setInterval(fetchOnlineCount, 30000);
-fetchOnlineCount();
+
+// Kick off every 60 seconds
+refreshOnlineStatus(); // run once at page load
+setInterval(refreshOnlineStatus, 60 * 1000);
 
 // Submit a new post (with optional image)
 async function submitPost() {
