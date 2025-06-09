@@ -2,6 +2,31 @@ const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Generate or load unique ID per visitor
+let userId = localStorage.getItem("oiap_user_id");
+if (!userId) {
+  userId = crypto.randomUUID();
+  localStorage.setItem("oiap_user_id", userId);
+
+  async function updateOnlineStatus() {
+  await client
+    .from("online_users")
+    .upsert([{ id: userId, last_seen: new Date().toISOString() }]);
+}
+setInterval(updateOnlineStatus, 60000); // every 60 sec
+updateOnlineStatus(); // immediately on load
+
+  async function fetchOnlineCount() {
+  const { data, count } = await client
+    .from("online_users")
+    .select("*", { count: "exact" })
+    .gt("last_seen", new Date(Date.now() - 2 * 60 * 1000).toISOString());
+
+  document.getElementById("onlineCount").innerText = `${count} online now`;
+}
+setInterval(fetchOnlineCount, 30000);
+fetchOnlineCount();
+
 // Submit a new post (with optional image)
 async function submitPost() {
   const content = document.getElementById('postContent').value.trim();
