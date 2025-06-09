@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const horseSound = new Audio('/assets/horse.mp3');
 
 // Unique session ID per browser
 let sessionId = localStorage.getItem('online_user_id');
@@ -125,24 +126,36 @@ async function loadPosts() {
   postsDiv.innerHTML = '';
 
   posts.forEach(post => {
-    const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
-    const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
-    const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
+  const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
+  const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
+  const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
 
-    const div = document.createElement('div');
-    div.className = 'post';
-    div.innerHTML = `
-      <p>${post.content}</p>
-      ${post.image_url ? `<img src="${post.image_url}" />` : ''}
-      <div style="margin-top: 10px; display: flex; gap: 10px;">
-        <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
-        <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
-        <button onclick="vote('${post.id}', 'horse')">🐎 ${horseVotes}</button>
-      </div>
-    `;
-    postsDiv.appendChild(div);
-  });
-}
+  const hasApparo = post.content.toLowerCase().includes('apparo');
+
+  const div = document.createElement('div');
+  div.className = 'post';
+  if (hasApparo) {
+    div.classList.add('trigger-apparo');
+
+    // Play horse sound
+    horseSound.currentTime = 0;
+    horseSound.play().catch(() => {
+      console.warn('🔇 Horse sound blocked until user interacts.');
+    });
+  }
+
+  div.innerHTML = `
+    <p>${hasApparo ? '🧿 ' : ''}${post.content}</p>
+    ${post.image_url ? `<img src="${post.image_url}" />` : ''}
+    <div style="margin-top: 10px; display: flex; gap: 10px;">
+      <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
+      <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
+      <button onclick="vote('${post.id}', 'horse')">🐎 ${horseVotes}</button>
+    </div>
+  `;
+
+  postsDiv.appendChild(div);
+});
 
 loadPosts();
 
