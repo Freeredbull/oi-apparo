@@ -31,12 +31,6 @@ btnNixtop.addEventListener('click', () => {
   loadPosts(false);
 });
 
-document.getElementById('toggle-nixtop').addEventListener('click', () => {
-  nixtopMode = !nixtopMode;
-  document.documentElement.classList.toggle('nixtop-active', nixtopMode);
-  loadPosts(false); // re-render posts
-});
-
 // Unique session ID per browser
 let sessionId = localStorage.getItem('online_user_id');
 if (!sessionId) {
@@ -171,7 +165,11 @@ posts.forEach(post => {
   const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
   const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
 
-  const hasApparo = post.content.toLowerCase().includes('apparo');
+let content = post.content;
+if (nixtopMode) {
+  content = content.replace(/apparo/gi, 'Nixtopapparo');
+}
+const hasApparo = content.toLowerCase().includes('apparo');
 
   // Determine emoji and text based on mode
   const emojiHorse = nixtopMode ? '🦇' : '🐎';
@@ -260,9 +258,9 @@ async function loadMarqueeTopPosts() {
     console.error('❌ JS crash in marquee function:', err);
   }
 }
-document.addEventListener('DOMContentLoaded', () => {
-  loadMarqueeTopPosts();
-});
+// Run immediately since modules load after DOM
+loadMarqueeTopPosts();
+refreshOnlineStatus();
 
 loadPosts(false); // initial load, not append
 
