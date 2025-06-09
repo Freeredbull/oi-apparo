@@ -171,12 +171,12 @@ async function loadMarqueeTopPosts() {
     });
 
     const topTextOnly = scoredPosts
-      .filter(post => !post.image_url || post.image_url.trim() === '')
+      .filter(post => post.image_url === null || post.image_url === '')
       .sort((a, b) => b.score - a.score)
       .slice(0, 7)
       .map(p => `📰 ${p.content.slice(0, 100).replace(/\n/g, ' ')}`);
 
-    console.log('🧵 Filtered marquee posts:', topTextOnly);
+    console.log('🧵 Filtered text-only top posts:', topTextOnly);
 
     const scrollText = topTextOnly.length > 0
       ? topTextOnly.join('   •   ')
@@ -185,13 +185,14 @@ async function loadMarqueeTopPosts() {
     const marquee = document.getElementById('marquee-text');
     console.log('📟 marquee element:', marquee);
 
-    if (marquee) {
-      marquee.textContent = scrollText;
-      console.log('✅ Marquee updated!');
-    } else {
-      console.warn('⚠️ #marquee-text element not found in DOM.');
+    if (!marquee) {
+      console.warn('❌ Marquee element not found in DOM!');
+      return;
     }
+
+    marquee.textContent = scrollText;
+    console.log('✅ Marquee updated with:', scrollText);
   } catch (err) {
-    console.error('❌ JS error in marquee function:', err.message);
+    console.error('❌ JS crash in marquee function:', err);
   }
 }
