@@ -196,3 +196,6 @@ async function loadMarqueeTopPosts() {
     console.error('❌ JS crash in marquee function:', err);
   }
 }
+document.addEventListener('DOMContentLoaded', () => {
+  loadMarqueeTopPosts();
+});
