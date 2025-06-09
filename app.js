@@ -1,3 +1,8 @@
+let postPage = 0;
+const postsPerPage = 15;
+let loadingPosts = false;
+let allPostsLoaded = false;
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
 const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
@@ -110,54 +115,65 @@ window.vote = async function (postId, type) {
   }
 };
 
-// Load posts
-async function loadPosts() {
+// Load Posts
+async function loadPosts(append = true) {
+  if (loadingPosts || allPostsLoaded) return;
+  loadingPosts = true;
+
   const { data: posts, error } = await client
     .from('posts')
     .select('id, content, image_url, created_at, votes(type)')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(postPage * postsPerPage, (postPage + 1) * postsPerPage - 1);
 
   if (error) {
     console.error("Error loading posts:", error.message);
+    loadingPosts = false;
     return;
   }
 
-  const postsDiv = document.getElementById('posts');
-  postsDiv.innerHTML = '';
-
-  posts.forEach(post => {
-  const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
-  const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
-  const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
-
-  const hasApparo = post.content.toLowerCase().includes('apparo');
-
-  const div = document.createElement('div');
-  div.className = 'post';
-  if (hasApparo) {
-    div.classList.add('trigger-apparo');
-
-    // Play horse sound
-    horseSound.currentTime = 0;
-    horseSound.play().catch(() => {
-      console.warn('🔇 Horse sound blocked until user interacts.');
-    });
+  if (posts.length < postsPerPage) {
+    allPostsLoaded = true;
   }
 
-  div.innerHTML = `
-    <p>${hasApparo ? '🐎 ' : ''}${post.content}</p>
-    ${post.image_url ? `<img src="${post.image_url}" />` : ''}
-    <div style="margin-top: 10px; display: flex; gap: 10px;">
-      <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
-      <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
-      <button onclick="vote('${post.id}', 'horse')">🐎 ${horseVotes}</button>
-    </div>
-  `;
+  const postsDiv = document.getElementById('posts');
+  if (!append) postsDiv.innerHTML = '';
 
-  postsDiv.appendChild(div);
-});
-} 
-loadPosts();
+  posts.forEach(post => {
+    const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
+    const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
+    const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
+
+    const hasApparo = post.content.toLowerCase().includes('apparo');
+
+    const div = document.createElement('div');
+    div.className = 'post';
+
+    if (hasApparo) {
+      div.classList.add('trigger-apparo');
+      horseSound.currentTime = 0;
+      horseSound.play().catch(() => {
+        console.warn('🔇 Horse sound blocked until user interacts.');
+      });
+    }
+
+    div.innerHTML = `
+      <p>${hasApparo ? '🐎 ' : ''}${post.content}</p>
+      ${post.image_url ? `<img src="${post.image_url}" />` : ''}
+      <div style="margin-top: 10px; display: flex; gap: 10px;">
+        <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
+        <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
+        <button onclick="vote('${post.id}', 'horse')">🐎 ${horseVotes}</button>
+      </div>
+    `;
+
+    postsDiv.appendChild(div);
+  });
+
+  postPage++;
+  loadingPosts = false;
+}
+
 
 async function loadMarqueeTopPosts() {
   console.log('✅ loadMarqueeTopPosts() started');
@@ -212,3 +228,13 @@ async function loadMarqueeTopPosts() {
 document.addEventListener('DOMContentLoaded', () => {
   loadMarqueeTopPosts();
 });
+
+loadPosts(false); // initial load, not append
+
+window.addEventListener('scroll', () => {
+  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
+  if (nearBottom) {
+    loadPosts(true);
+  }
+});
+
