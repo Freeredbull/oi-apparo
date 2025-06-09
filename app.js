@@ -145,7 +145,7 @@ async function loadPosts() {
   }
 
   div.innerHTML = `
-    <p>${hasApparo ? '🧿 ' : ''}${post.content}</p>
+    <p>${hasApparo ? '🐎' : ''}${post.content}</p>
     ${post.image_url ? `<img src="${post.image_url}" />` : ''}
     <div style="margin-top: 10px; display: flex; gap: 10px;">
       <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
