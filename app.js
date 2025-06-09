@@ -21,6 +21,8 @@ btnApparos.addEventListener('click', () => {
   document.documentElement.classList.remove('nixtop-active');
   btnApparos.classList.add('active');
   btnNixtop.classList.remove('active');
+    // ⬅️ Change header text
+  document.querySelector('h1').textContent = '🐎 OI APPARO';
   postPage = 0;
   allPostsLoaded = false;
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -32,6 +34,8 @@ btnNixtop.addEventListener('click', () => {
   document.documentElement.classList.add('nixtop-active');
   btnApparos.classList.remove('active');
   btnNixtop.classList.add('active');
+  // ⬅️ Change header text
+  document.querySelector('h1').textContent = '🦇 OI NIXTOPAPPARO';
   nixtopSound.currentTime = 0;
   nixtopSound.play().catch(() => {
     console.warn('🔇 Nixtop sound blocked until user interacts.');
