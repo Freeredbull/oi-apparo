@@ -109,46 +109,6 @@ window.vote = async function (postId, type) {
   }
 };
 
-async function loadMarqueeTopPosts() {
-  const { data: posts, error } = await client
-    .from('posts')
-    .select('id, content, image_url, votes(type)')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error loading marquee posts:', error.message);
-    return;
-  }
-
-  // Score each post based on votes
-  const scoredPosts = posts.map(post => {
-    const up = post.votes?.filter(v => v.type === 'up').length || 0;
-    const down = post.votes?.filter(v => v.type === 'down').length || 0;
-    const horse = post.votes?.filter(v => v.type === 'horse').length || 0;
-    const score = up - down + horse;
-    return { ...post, score };
-  });
-
-  // Filter for text-only posts (no image), take top 7 by score
-  const topTextOnly = scoredPosts
-    .filter(post => !post.image_url)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 7)
-    .map(p => `📰 ${p.content.slice(0, 100).replace(/\n/g, ' ')}`); // limit to 100 chars
-
-  // Join with separator
-  const scrollText = topTextOnly.length > 0
-    ? topTextOnly.join('   •   ')
-    : 'No top posts yet. Be the first to post something legendary. 🐎';
-
-  // Update marquee DOM
-  const marquee = document.getElementById('marquee-text');
-  if (marquee) marquee.textContent = scrollText;
-}
-
-loadMarqueeTopPosts();
-setInterval(loadMarqueeTopPosts, 60000); // Refresh every 60 seconds
-
 // Load posts
 async function loadPosts() {
   const { data: posts, error } = await client
@@ -185,3 +145,47 @@ async function loadPosts() {
 }
 
 loadPosts();
+
+async function loadMarqueeTopPosts() {
+  try {
+    const { data: posts, error } = await client
+      .from('posts')
+      .select('id, content, image_url, votes(type)')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading marquee posts:', error.message);
+      return;
+    }
+
+    const scoredPosts = posts.map(post => {
+      const up = post.votes?.filter(v => v.type === 'up').length || 0;
+      const down = post.votes?.filter(v => v.type === 'down').length || 0;
+      const horse = post.votes?.filter(v => v.type === 'horse').length || 0;
+      const score = up - down + horse;
+      return { ...post, score };
+    });
+
+    const topTextOnly = scoredPosts
+      .filter(post => !post.image_url)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 7)
+      .map(p => `📰 ${p.content.slice(0, 100).replace(/\n/g, ' ')}`);
+
+    const scrollText = topTextOnly.length > 0
+      ? topTextOnly.join('   •   ')
+      : 'No top posts yet. Be the first to post something legendary. 🐎';
+
+    const marquee = document.getElementById('marquee-text');
+    if (marquee) marquee.textContent = scrollText;
+  } catch (err) {
+    console.error('Failed to load marquee:', err.message);
+  }
+}
+
+// Run after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  loadMarqueeTopPosts();
+  setInterval(loadMarqueeTopPosts, 60000);
+});
+
