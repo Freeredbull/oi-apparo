@@ -8,6 +8,9 @@ const nixtopSound = new Audio('/assets/nixtop-toggle.mp3');
 
 
 let nixtopMode = false;
+let postPage = 0;
+let loadingPosts = false;
+let allPostsLoaded = false;
 
 const btnApparos = document.getElementById('mode-apparos');
 const btnNixtop = document.getElementById('mode-nixtop');
@@ -263,45 +266,18 @@ async function loadMarqueeTopPosts() {
 }
 
 // Run immediately since modules load after DOM
-loadMarqueeTopPosts();
-refreshOnlineStatus();
-
 document.addEventListener('DOMContentLoaded', () => {
-  const btnApparos = document.getElementById('mode-apparos');
-  const btnNixtop = document.getElementById('mode-nixtop');
-  const nixtopSound = new Audio('/assets/nixtop-toggle.mp3');
+  loadMarqueeTopPosts();
+  refreshOnlineStatus();
+  loadPosts(false); // initial load, not append
+});
 
-  btnApparos.addEventListener('click', () => {
-    nixtopMode = false;
-    document.documentElement.classList.remove('nixtop-active');
-    btnApparos.classList.add('active');
-    btnNixtop.classList.remove('active');
-
-    // Reset
-    postPage = 0;
-    allPostsLoaded = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    loadPosts(false);
-  });
-
-  btnNixtop.addEventListener('click', () => {
-    nixtopMode = true;
-    document.documentElement.classList.add('nixtop-active');
-    btnApparos.classList.remove('active');
-    btnNixtop.classList.add('active');
-
-    // Play sound
-    nixtopSound.currentTime = 0;
-    nixtopSound.play().catch(() => {
-      console.warn('🔇 Nixtop sound blocked until user interacts.');
-    });
-
-    // Reset
-    postPage = 0;
-    allPostsLoaded = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    loadPosts(false);
-  });
+// Lazy load on scroll
+window.addEventListener('scroll', () => {
+  const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
+  if (nearBottom) {
+    loadPosts(true);
+  }
 });
 
 loadPosts(false); // initial load, not append
