@@ -1,37 +1,11 @@
-btnApparos.addEventListener('click', () => {
-  nixtopMode = false;
-  document.documentElement.classList.remove('nixtop-active');
-  btnApparos.classList.add('active');
-  btnNixtop.classList.remove('active');
-
-  // Reset pagination + scroll
-  postPage = 0;
-  allPostsLoaded = false;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  loadPosts(false);
-});
-
-btnNixtop.addEventListener('click', () => {
-  nixtopMode = true;
-  document.documentElement.classList.add('nixtop-active');
-  btnApparos.classList.remove('active');
-  btnNixtop.classList.add('active');
-
-  // Reset pagination + scroll
-  postPage = 0;
-  allPostsLoaded = false;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  loadPosts(false);
-});
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
 const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const horseSound = new Audio('/assets/horse.mp3');
+const nixtopSound = new Audio('/assets/nixtop-toggle.mp3');
+
 
 let nixtopMode = false;
 
@@ -51,8 +25,20 @@ btnNixtop.addEventListener('click', () => {
   document.documentElement.classList.add('nixtop-active');
   btnApparos.classList.remove('active');
   btnNixtop.classList.add('active');
+
+  // 🎵 Play sound
+  nixtopSound.currentTime = 0;
+  nixtopSound.play().catch(() => {
+    console.warn('🔇 Nixtop sound blocked until user interacts.');
+  });
+
+  // Reset pagination + scroll
+  postPage = 0;
+  allPostsLoaded = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   loadPosts(false);
 });
+
 
 // Unique session ID per browser
 let sessionId = localStorage.getItem('online_user_id');
@@ -275,9 +261,48 @@ async function loadMarqueeTopPosts() {
     console.error('❌ JS crash in marquee function:', err);
   }
 }
+
 // Run immediately since modules load after DOM
 loadMarqueeTopPosts();
 refreshOnlineStatus();
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnApparos = document.getElementById('mode-apparos');
+  const btnNixtop = document.getElementById('mode-nixtop');
+  const nixtopSound = new Audio('/assets/nixtop-toggle.mp3');
+
+  btnApparos.addEventListener('click', () => {
+    nixtopMode = false;
+    document.documentElement.classList.remove('nixtop-active');
+    btnApparos.classList.add('active');
+    btnNixtop.classList.remove('active');
+
+    // Reset
+    postPage = 0;
+    allPostsLoaded = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    loadPosts(false);
+  });
+
+  btnNixtop.addEventListener('click', () => {
+    nixtopMode = true;
+    document.documentElement.classList.add('nixtop-active');
+    btnApparos.classList.remove('active');
+    btnNixtop.classList.add('active');
+
+    // Play sound
+    nixtopSound.currentTime = 0;
+    nixtopSound.play().catch(() => {
+      console.warn('🔇 Nixtop sound blocked until user interacts.');
+    });
+
+    // Reset
+    postPage = 0;
+    allPostsLoaded = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    loadPosts(false);
+  });
+});
 
 loadPosts(false); // initial load, not append
 
