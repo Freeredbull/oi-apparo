@@ -246,3 +246,17 @@ button:focus {
     padding: 0.5rem 0.8rem;
   }
 }
+
+.trigger-apparo {
+  background-color: #000;
+  color: #00ffcc;
+  border: 2px solid #00ffcc;
+  box-shadow: 0 0 6px #00ffee;
+  animation: apparo-glow 2s ease-in-out infinite;
+}
+
+@keyframes apparo-glow {
+  0% { box-shadow: 0 0 4px #00ffee; }
+  50% { box-shadow: 0 0 10px #00ffee; }
+  100% { box-shadow: 0 0 4px #00ffee; }
+}
