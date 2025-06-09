@@ -261,32 +261,53 @@ button:focus {
   100% { box-shadow: 0 0 4px #00ffee; }
 }
 
+.mode-toggle {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.mode-btn {
+  font-family: monospace;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  margin: 0 4px;
+  border-radius: 6px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+#mode-apparos {
+  background-color: #eaffea;
+  color: #008000;
+  border-color: #008000;
+}
+
+#mode-nixtop {
+  background-color: #ffeeee;
+  color: #cc0000;
+  border-color: #cc0000;
+}
+
+.mode-btn.active {
+  font-weight: bold;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Nixtop mode overrides */
 .nixtop-active body {
-  background-color: #111;
-  color: #00ffee;
-  font-family: 'Press Start 2P', monospace;
+  background-color: #110000;
+  color: #ff4444;
 }
 
 .nixtop-active .post {
-  background-color: #000;
-  border: 1px solid #00ffee;
-  color: #00ffee;
+  background-color: #200000;
+  color: #ff4444;
+  border-color: #ff4444;
 }
 
-.nixtop-toggle {
-  font-family: monospace;
-  font-size: 0.8rem;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  padding: 6px 12px;
-  background: #222;
-  color: #00ffee;
-  border: 1px solid #00ffee;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.nixtop-toggle:hover {
-  background: #333;
-  text-shadow: 0 0 2px #00ffee;
+.nixtop-active #online-count {
+  background-color: #ffeaea;
+  color: #cc0000;
+  border-color: #cc0000;
 }
