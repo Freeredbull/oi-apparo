@@ -172,6 +172,8 @@ async function loadMarqueeTopPosts() {
       .slice(0, 7)
       .map(p => `📰 ${p.content.slice(0, 100).replace(/\n/g, ' ')}`);
 
+    console.log('Posts loaded:', posts);
+console.log('Filtered posts:', topTextOnly);
     const scrollText = topTextOnly.length > 0
       ? topTextOnly.join('   •   ')
       : 'No top posts yet. Be the first to post something legendary. 🐎';
