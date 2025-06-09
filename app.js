@@ -10,6 +10,14 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const horseSound = new Audio('/assets/horse.mp3');
 
+let nixtopMode = false;
+
+document.getElementById('toggle-nixtop').addEventListener('click', () => {
+  nixtopMode = !nixtopMode;
+  document.documentElement.classList.toggle('nixtop-active', nixtopMode);
+  loadPosts(false); // re-render posts
+});
+
 // Unique session ID per browser
 let sessionId = localStorage.getItem('online_user_id');
 if (!sessionId) {
@@ -139,36 +147,44 @@ async function loadPosts(append = true) {
   const postsDiv = document.getElementById('posts');
   if (!append) postsDiv.innerHTML = '';
 
-  posts.forEach(post => {
-    const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
-    const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
-    const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
+posts.forEach(post => {
+  const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
+  const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
+  const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
 
-    const hasApparo = post.content.toLowerCase().includes('apparo');
+  const hasApparo = post.content.toLowerCase().includes('apparo');
 
-    const div = document.createElement('div');
-    div.className = 'post';
+  // Determine emoji and text based on mode
+  const emojiHorse = nixtopMode ? '🦇' : '🐎';
+  let content = post.content;
 
-    if (hasApparo) {
-      div.classList.add('trigger-apparo');
-      horseSound.currentTime = 0;
-      horseSound.play().catch(() => {
-        console.warn('🔇 Horse sound blocked until user interacts.');
-      });
-    }
+  if (nixtopMode) {
+    content = content.replace(/apparo/gi, 'Nixtopapparo');
+  }
 
-    div.innerHTML = `
-      <p>${hasApparo ? '🐎 ' : ''}${post.content}</p>
-      ${post.image_url ? `<img src="${post.image_url}" />` : ''}
-      <div style="margin-top: 10px; display: flex; gap: 10px;">
-        <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
-        <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
-        <button onclick="vote('${post.id}', 'horse')">🐎 ${horseVotes}</button>
-      </div>
-    `;
+  const div = document.createElement('div');
+  div.className = 'post';
 
-    postsDiv.appendChild(div);
-  });
+  if (hasApparo && !nixtopMode) {
+    div.classList.add('trigger-apparo');
+    horseSound.currentTime = 0;
+    horseSound.play().catch(() => {
+      console.warn('🔇 Horse sound blocked until user interacts.');
+    });
+  }
+
+  div.innerHTML = `
+    <p>${hasApparo ? emojiHorse + ' ' : ''}${content}</p>
+    ${post.image_url ? `<img src="${post.image_url}" />` : ''}
+    <div style="margin-top: 10px; display: flex; gap: 10px;">
+      <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
+      <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
+      <button onclick="vote('${post.id}', 'horse')">${emojiHorse} ${horseVotes}</button>
+    </div>
+  `;
+
+  postsDiv.appendChild(div);
+});
 
   postPage++;
   loadingPosts = false;
