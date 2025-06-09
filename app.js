@@ -173,11 +173,11 @@ const hasApparo = content.toLowerCase().includes('apparo');
 
   // Determine emoji and text based on mode
   const emojiHorse = nixtopMode ? '🦇' : '🐎';
-  let content = post.content;
-
-  if (nixtopMode) {
-    content = content.replace(/apparo/gi, 'Nixtopapparo');
-  }
+content = post.content;
+if (nixtopMode) {
+  content = content.replace(/apparo/gi, 'Nixtopapparo');
+}
+const hasApparo = content.toLowerCase().includes('apparo');
 
   const div = document.createElement('div');
   div.className = 'post';
