@@ -1,8 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
-
 const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Get or create a unique browser session ID
 let sessionId = localStorage.getItem('online_user_id');
@@ -16,13 +15,13 @@ async function refreshOnlineStatus() {
   const now = new Date().toISOString();
 
   // Upsert this session's row
-  await supabase.from('online_users').upsert({
+  await client.from('online_users').upsert({
     id: sessionId,
     last_seen: now
   });
 
   // Get count of users seen in the past 2 minutes
-  const { data, error, count } = await supabase
+  const { data, error, count } = await client
     .from('online_users')
     .select('id', { count: 'exact' })
     .gte('last_seen', new Date(Date.now() - 2 * 60 * 1000).toISOString());
