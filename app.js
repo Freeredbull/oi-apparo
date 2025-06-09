@@ -147,7 +147,8 @@ async function loadPosts() {
 loadPosts();
 
 async function loadMarqueeTopPosts() {
-console.log('✅ loadMarqueeTopPosts() started');
+  console.log('✅ loadMarqueeTopPosts() started');
+
   try {
     const { data: posts, error } = await client
       .from('posts')
@@ -155,15 +156,12 @@ console.log('✅ loadMarqueeTopPosts() started');
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error loading marquee posts:', error.message);
+      console.error('❌ Supabase error:', error.message);
       return;
     }
 
-    const marquee = document.getElementById('marquee-text');
-console.log('📟 marquee element:', marquee);
-if (marquee) {
-  marquee.textContent = '✅ TESTING — should replace loading';
-}
+    console.log('📦 Posts from Supabase:', posts);
+
     const scoredPosts = posts.map(post => {
       const up = post.votes?.filter(v => v.type === 'up').length || 0;
       const down = post.votes?.filter(v => v.type === 'down').length || 0;
@@ -173,27 +171,27 @@ if (marquee) {
     });
 
     const topTextOnly = scoredPosts
-      .filter(post => post.image_url == null || post.image_url === '')
+      .filter(post => !post.image_url || post.image_url.trim() === '')
       .sort((a, b) => b.score - a.score)
       .slice(0, 7)
       .map(p => `📰 ${p.content.slice(0, 100).replace(/\n/g, ' ')}`);
 
-    console.log('Posts loaded:', posts);
-console.log('Filtered posts:', topTextOnly);
+    console.log('🧵 Filtered marquee posts:', topTextOnly);
+
     const scrollText = topTextOnly.length > 0
       ? topTextOnly.join('   •   ')
       : 'No top posts yet. Be the first to post something legendary. 🐎';
 
     const marquee = document.getElementById('marquee-text');
-    if (marquee) marquee.textContent = scrollText;
+    console.log('📟 marquee element:', marquee);
+
+    if (marquee) {
+      marquee.textContent = scrollText;
+      console.log('✅ Marquee updated!');
+    } else {
+      console.warn('⚠️ #marquee-text element not found in DOM.');
+    }
   } catch (err) {
-    console.error('Failed to load marquee:', err.message);
+    console.error('❌ JS error in marquee function:', err.message);
   }
 }
-
-// Run after DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  loadMarqueeTopPosts();
-  setInterval(loadMarqueeTopPosts, 60000);
-});
-
