@@ -1,7 +1,30 @@
-let postPage = 0;
-const postsPerPage = 15;
-let loadingPosts = false;
-let allPostsLoaded = false;
+btnApparos.addEventListener('click', () => {
+  nixtopMode = false;
+  document.documentElement.classList.remove('nixtop-active');
+  btnApparos.classList.add('active');
+  btnNixtop.classList.remove('active');
+
+  // Reset pagination + scroll
+  postPage = 0;
+  allPostsLoaded = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  loadPosts(false);
+});
+
+btnNixtop.addEventListener('click', () => {
+  nixtopMode = true;
+  document.documentElement.classList.add('nixtop-active');
+  btnApparos.classList.remove('active');
+  btnNixtop.classList.add('active');
+
+  // Reset pagination + scroll
+  postPage = 0;
+  allPostsLoaded = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  loadPosts(false);
+});
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
@@ -166,12 +189,12 @@ async function loadPosts(append = true) {
     const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
 
     // 🧠 Replace 'apparo' if nixtopMode is on
-    let content = post.content;
-    if (nixtopMode) {
-      content = content.replace(/apparo/gi, 'Nixtopapparo');
-    }
+    const original = post.content;
+const content = nixtopMode
+  ? original.replace(/apparo/gi, 'Nixtopapparo')
+  : original;
 
-    const hasApparo = content.toLowerCase().includes('apparo');
+const hasApparo = content.toLowerCase().includes('apparo');
     const emojiHorse = nixtopMode ? '🦇' : '🐎';
 
     const div = document.createElement('div');
