@@ -147,6 +147,7 @@ async function loadPosts() {
 loadPosts();
 
 async function loadMarqueeTopPosts() {
+console.log('✅ loadMarqueeTopPosts() started');
   try {
     const { data: posts, error } = await client
       .from('posts')
@@ -158,6 +159,11 @@ async function loadMarqueeTopPosts() {
       return;
     }
 
+    const marquee = document.getElementById('marquee-text');
+console.log('📟 marquee element:', marquee);
+if (marquee) {
+  marquee.textContent = '✅ TESTING — should replace loading';
+}
     const scoredPosts = posts.map(post => {
       const up = post.votes?.filter(v => v.type === 'up').length || 0;
       const down = post.votes?.filter(v => v.type === 'down').length || 0;
