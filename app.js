@@ -173,7 +173,7 @@ async function loadMarqueeTopPosts() {
     const topTextOnly = scoredPosts
       .filter(post => post.image_url === null || post.image_url === '')
       .sort((a, b) => b.score - a.score)
-      .slice(0, 7)
+      .slice(0, 10)
       .map(p => `📰 ${p.content.slice(0, 100).replace(/\n/g, ' ')}`);
 
     console.log('🧵 Filtered text-only top posts:', topTextOnly);
