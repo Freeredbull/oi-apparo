@@ -7,72 +7,61 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
   <div id="marquee-container">
-    <div id="marquee-text">🔄 Loading top posts...</div>
-  </div>
-
+  <div id="marquee-text">🔄 Loading top posts...</div>
+</div>
   <h1>🐎 OI APPARO 🔥</h1>
-
   <div id="mode-toggle" class="mode-toggle">
-    <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
-    <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
-  </div>
-
-  <div id="online-count">🟢 loading...</div>
-
+  <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
+  <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
+</div>
+  <div id="online-count" style="font-size: 0.9em; color: green;">🟢 loading...</div>
   <div class="container">
     <div class="post-form">
-      <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
+     <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
 
-      <!-- Image source options -->
-      <div class="image-source" style="margin-bottom: 1rem;">
-        <strong>Attach image:</strong><br/>
+<!-- Image Source Selection -->
+<div style="margin-top: 10px;">
+  <label>
+    <input type="radio" name="image-source" value="upload" checked> Upload
+  </label>
+  <input type="file" id="postImage" accept="image/*" />
 
-        <label>
-          <input type="radio" name="image-source" value="upload" checked />
-          📁 Upload
-        </label>
+  <label style="margin-left: 10px;">
+    <input type="radio" name="image-source" value="draw"> Draw
+  </label>
+  <button type="button" id="draw-btn">✏️ Open Draw Pad</button>
+</div>
 
-        <!-- This input will toggle visibility -->
-        <div id="upload-wrapper" style="margin: 0.5rem 0;">
-          <input type="file" id="postImage" accept="image/*" />
-        </div>
+<!-- Hidden input to store URL of drawing if used -->
+<input type="hidden" id="image-url-input">
 
-        <label>
-          <input type="radio" name="image-source" value="draw" />
-          ✏️ Draw
-        </label>
-      </div>
+<button onclick="submitPost()">Post</button>
 
-      <!-- Hidden input to store drawing URL -->
-      <input type="hidden" id="image-url-input" />
-
-      <!-- Drawing canvas (hidden by default) -->
-      <div id="draw-section" style="display: none; background: #000; border: 2px solid green; padding: 10px;">
-        <div class="draw-buttons" style="margin-bottom: 8px;">
-          <button id="select-horse">🐎 Horse</button>
-          <button id="select-bat">🦇 Bat</button>
-        </div>
-
-        <canvas id="draw-canvas" width="300" height="300" style="border:2px solid green; background:black; display: block; margin-bottom: 10px;"></canvas>
-
-        <div class="draw-controls">
-          <button id="draw-tool">🖌 Draw</button>
-          <button id="erase-tool">🧽 Erase</button>
-          <button id="clear-drawing">🧹 Clear</button>
-          <button id="save-drawing">✅ Save Drawing</button>
-        </div>
-      </div>
-
-      <div class="submit-wrapper" style="margin-top: 1rem;">
-        <button onclick="submitPost()">📨 Post</button>
-      </div>
     </div>
 
     <div id="posts"></div>
   </div>
 
+
+
+  <!-- Drawing Pad Modal -->
+<div id="draw-modal" style="display:none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: black; padding: 10px; border: 2px solid green; z-index: 1000;">
+  <div style="margin-bottom: 8px;">
+    <button id="select-horse">🐎 Horse</button>
+    <button id="select-bat">🦇 Bat</button>
+  </div>
+
+  <canvas id="draw-canvas" width="300" height="300" style="border:2px solid green; background:black;"></canvas>
+
+  <div style="margin-top:10px;">
+    <button id="draw-tool">🖌 Draw</button>
+    <button id="erase-tool">🧽 Erase</button>
+    <button id="clear-drawing">🧹 Clear</button>
+    <button id="save-drawing">✅ Save</button>
+    <button id="close-drawing">❌ Cancel</button>
+  </div>
+</div>
   <script type="module" src="app.js"></script>
 </body>
 </html>
