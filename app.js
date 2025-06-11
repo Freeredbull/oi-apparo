@@ -277,7 +277,8 @@ if (canvas && ctx && drawModal) {
     ctx.beginPath();
   });
   canvas.addEventListener("mousemove", drawStroke);
-
+  canvas.addEventListener("mouseout", () => drawing = false);
+  
   canvas.addEventListener("touchstart", () => drawing = true);
   canvas.addEventListener("touchend", () => drawing = false);
   canvas.addEventListener("touchmove", e => {
