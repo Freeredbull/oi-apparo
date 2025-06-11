@@ -455,5 +455,16 @@ button:focus {
     width: 100%;
   }
 }
+.image-source-options {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.image-source-options input[type="radio"] {
+  transform: scale(1.2);
+  margin-right: 6px;
+}
 
 
