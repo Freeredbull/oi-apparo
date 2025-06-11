@@ -198,6 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
     if (nearBottom) loadPosts(true);
   });
+
+});
+
 // ========== DRAWING PAD LOGIC ==========
 
 const lineImages = {
@@ -301,4 +304,3 @@ if (canvas && ctx && drawModal) {
     });
   };
 }
-});
