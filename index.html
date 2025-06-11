@@ -25,29 +25,33 @@
       <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
 
       <!-- Image Source Selection -->
-      <div style="margin-top: 10px;">
-        <label>
-          <input type="radio" name="image-source" value="upload" checked> Upload
-        </label>
-        <div id="upload-section">
-          <input type="file" id="postImage" accept="image/*" />
-        </div>
+<div class="image-source-options" style="margin-top: 16px;">
+  <div>
+    <label>
+      <input type="radio" name="image-source" value="upload" checked>
+      📁 Upload
+    </label>
+  </div>
 
-        <label style="margin-left: 10px;">
-          <input type="radio" name="image-source" value="draw"> Draw
-        </label>
-        <div id="draw-launch" style="margin-top: 6px; display: none;">
-          <button type="button" id="draw-btn">✏️ Open Draw Pad</button>
-        </div>
-      </div>
+  <div id="upload-section" style="margin-top: 8px;">
+    <input type="file" id="postImage" accept="image/*" />
+  </div>
 
-      <!-- Hidden input to store drawing URL -->
-      <input type="hidden" id="image-url-input">
+  <div style="margin-top: 12px;">
+    <label>
+      <input type="radio" name="image-source" value="draw">
+      ✏️ Draw
+    </label>
+  </div>
 
-      <!-- Confirmation preview -->
-      <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
-        ✅ Drawing saved and ready to post.
-      </div>
+  <div id="draw-launch" style="margin-top: 6px; display: none;">
+    <button type="button" id="draw-btn">🎨 Open Draw Pad</button>
+  </div>
+
+  <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
+    ✅ Drawing saved and ready to post.
+  </div>
+</div>
 
       <button onclick="submitPost()">📨 Post</button>
     </div>
