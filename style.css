@@ -386,3 +386,16 @@ button:focus {
   border-color: #ff0033;
   box-shadow: 0 0 6px #ff0033;
 }
+
+#draw-modal {
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+  padding: 10px;
+  z-index: 1000;
+  border: 2px solid green;
+}
+
