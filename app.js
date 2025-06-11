@@ -209,6 +209,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nearBottom) loadPosts(true);
   });
 
+// Toggle draw pad when user selects "Draw"
+const drawSection = document.getElementById("draw-section");
+const imageSourceRadios = document.querySelectorAll('input[name="image-source"]');
+
+imageSourceRadios.forEach(radio => {
+  radio.addEventListener("change", () => {
+    if (radio.value === "draw" && radio.checked) {
+      drawSection.style.display = "block";
+      loadLineArt("horse"); // Default to horse
+    } else {
+      drawSection.style.display = "none";
+    }
+  });
+});
+
+  
 });
 
 // ========== DRAWING PAD LOGIC ==========
