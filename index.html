@@ -30,7 +30,6 @@
   <label style="margin-left: 10px;">
     <input type="radio" name="image-source" value="draw"> Draw
   </label>
-  <button type="button" id="draw-btn">✏️ Open Draw Pad</button>
 </div>
 
 <!-- Hidden input to store URL of drawing if used -->
@@ -46,7 +45,8 @@
 
 
   <!-- Drawing Pad Modal -->
-<div id="draw-modal" style="display:none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: black; padding: 10px; border: 2px solid green; z-index: 1000;">
+<!-- Inline Drawing Pad -->
+<div id="draw-section" style="display:none; margin-top: 15px; background: black; padding: 10px; border: 2px solid green;">
   <div style="margin-bottom: 8px;">
     <button id="select-horse">🐎 Horse</button>
     <button id="select-bat">🦇 Bat</button>
@@ -58,8 +58,6 @@
     <button id="draw-tool">🖌 Draw</button>
     <button id="erase-tool">🧽 Erase</button>
     <button id="clear-drawing">🧹 Clear</button>
-    <button id="save-drawing">✅ Save</button>
-    <button id="close-drawing">❌ Cancel</button>
   </div>
 </div>
   <script type="module" src="app.js"></script>
