@@ -255,10 +255,17 @@ if (canvas && ctx && drawModal) {
     img.src = lineImages[type];
   }
 
-  document.getElementById("draw-btn").onclick = () => {
-    drawModal.style.display = "block";
-    loadLineArt("horse");
-  };
+ document.querySelectorAll('input[name="image-source"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const drawSection = document.getElementById('draw-section');
+    if (radio.value === 'draw' && radio.checked) {
+      drawSection.style.display = 'block';
+      loadLineArt("horse");
+    } else {
+      drawSection.style.display = 'none';
+    }
+  });
+});
 
   document.getElementById("select-horse").onclick = () => loadLineArt("horse");
   document.getElementById("select-bat").onclick = () => loadLineArt("bat");
