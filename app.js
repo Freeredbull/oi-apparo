@@ -72,26 +72,36 @@ async function refreshOnlineStatus() {
 window.submitPost = async function () {
   const content = document.getElementById('postContent').value.trim();
   const fileInput = document.getElementById('postImage');
-const imageChoice = document.querySelector('input[name="image-source"]:checked').value;
-let imageUrl = null;
+  const imageChoice = document.querySelector('input[name="image-source"]:checked').value;
+  let imageUrl = null;
 
-if (!content) return alert("Please enter some text!");
+  const hasUpload = imageChoice === 'upload' && fileInput.files.length > 0;
+  const hasDrawing = imageChoice === 'draw' && document.getElementById('image-url-input').value;
 
-if (imageChoice === 'upload' && fileInput.files.length > 0) {
-  const file = fileInput.files[0];
-  const fileName = `${Date.now()}_${file.name}`;
-  await client.storage.from('images').upload(fileName, file);
-  const { data } = client.storage.from('images').getPublicUrl(fileName);
-  imageUrl = data.publicUrl;
-}
+  // ✅ Allow post if either text, uploaded image, or drawing is provided
+  if (!content && !hasUpload && !hasDrawing) {
+    return alert("Please enter text, upload an image, or draw something!");
+  }
 
-if (imageChoice === 'draw') {
-  imageUrl = document.getElementById('image-url-input').value;
-}
-  
+  if (hasUpload) {
+    const file = fileInput.files[0];
+    const fileName = `${Date.now()}_${file.name}`;
+    await client.storage.from('images').upload(fileName, file);
+    const { data } = client.storage.from('images').getPublicUrl(fileName);
+    imageUrl = data.publicUrl;
+  }
+
+  if (hasDrawing) {
+    imageUrl = document.getElementById('image-url-input').value;
+  }
+
   await client.from('posts').insert([{ content, image_url: imageUrl }]);
+
+  // Reset fields
   document.getElementById('postContent').value = '';
   fileInput.value = '';
+  document.getElementById('image-url-input').value = '';
+
   loadPosts();
 };
 
