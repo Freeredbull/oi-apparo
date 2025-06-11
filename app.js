@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const lineImages = {
   horse: "/assets/horse-line.png",
-  bat: "/assets/bat-line.png"
+  bat: "/assets/bat-draw.png"
 };
 
 const canvas = document.getElementById("draw-canvas");
