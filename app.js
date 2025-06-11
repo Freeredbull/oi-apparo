@@ -198,4 +198,107 @@ document.addEventListener('DOMContentLoaded', () => {
     const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
     if (nearBottom) loadPosts(true);
   });
+// ========== DRAWING PAD LOGIC ==========
+
+const lineImages = {
+  horse: "/assets/horse-line.png",
+  bat: "/assets/bat-line.png"
+};
+
+const canvas = document.getElementById("draw-canvas");
+const ctx = canvas?.getContext("2d");
+const drawModal = document.getElementById("draw-modal");
+
+if (canvas && ctx && drawModal) {
+  let drawing = false;
+  let mode = "draw"; // or 'erase'
+
+  function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX || e.pageX) - rect.left,
+      y: (e.clientY || e.pageY) - rect.top
+    };
+  }
+
+  function drawStroke(e) {
+    if (!drawing) return;
+    const { x, y } = getCanvasCoords(e);
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  function loadLineArt(type) {
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = lineImages[type];
+  }
+
+  document.getElementById("draw-btn").onclick = () => {
+    drawModal.style.display = "block";
+    loadLineArt("horse");
+  };
+
+  document.getElementById("select-horse").onclick = () => loadLineArt("horse");
+  document.getElementById("select-bat").onclick = () => loadLineArt("bat");
+
+  document.getElementById("draw-tool").onclick = () => {
+    mode = "draw";
+    ctx.strokeStyle = "#00FF00";
+  };
+
+  document.getElementById("erase-tool").onclick = () => {
+    mode = "erase";
+    ctx.strokeStyle = "#000000";
+  };
+
+  document.getElementById("clear-drawing").onclick = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  document.getElementById("close-drawing").onclick = () => {
+    drawModal.style.display = "none";
+  };
+
+  canvas.addEventListener("mousedown", () => drawing = true);
+  canvas.addEventListener("mouseup", () => {
+    drawing = false;
+    ctx.beginPath();
+  });
+  canvas.addEventListener("mousemove", drawStroke);
+
+  canvas.addEventListener("touchstart", () => drawing = true);
+  canvas.addEventListener("touchend", () => drawing = false);
+  canvas.addEventListener("touchmove", e => {
+    e.preventDefault();
+    drawStroke(e.touches[0]);
+  }, { passive: false });
+
+  document.getElementById("save-drawing").onclick = () => {
+    canvas.toBlob(async (blob) => {
+      const filePath = `drawings/${crypto.randomUUID()}.png`;
+      const { error } = await client.storage.from("images").upload(filePath, blob, {
+        contentType: "image/png"
+      });
+
+      if (error) {
+        alert("Upload failed");
+        return;
+      }
+
+      const { data } = client.storage.from("images").getPublicUrl(filePath);
+      document.getElementById("image-url-input").value = data.publicUrl;
+
+      drawModal.style.display = "none";
+    });
+  };
+}
 });
