@@ -235,17 +235,15 @@ if (canvas && ctx && drawModal) {
     };
   }
 
-  function drawStroke(e) {
-    if (!drawing) return;
-    const { x, y } = getCanvasCoords(e);
-    ctx.lineWidth = 4;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  }
+ function drawStroke(x, y) {
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+}
 
   function loadLineArt(type) {
     const img = new Image();
@@ -273,19 +271,26 @@ if (canvas && ctx && drawModal) {
   document.getElementById("close-drawing").onclick = () => drawModal.style.display = "none";
 
   canvas.addEventListener("mousedown", (e) => {
-    drawing = true;
-    const { x, y } = getCanvasCoords(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  });
+  drawing = true;
+  const { x, y } = getCanvasCoords(e);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+});
 
-  canvas.addEventListener("mouseup", () => {
-    drawing = false;
-    ctx.beginPath();
-  });
+canvas.addEventListener("mousemove", (e) => {
+  if (!drawing) return;
+  const { x, y } = getCanvasCoords(e);
+  drawStroke(x, y);
+});
 
-  canvas.addEventListener("mousemove", drawStroke);
-  canvas.addEventListener("mouseout", () => drawing = false);
+canvas.addEventListener("mouseup", () => {
+  drawing = false;
+  ctx.beginPath();
+});
+
+canvas.addEventListener("mouseout", () => {
+  drawing = false;
+});
 
   canvas.addEventListener("touchstart", (e) => {
     drawing = true;
@@ -296,9 +301,12 @@ if (canvas && ctx && drawModal) {
 
   canvas.addEventListener("touchend", () => drawing = false);
   canvas.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    drawStroke(e);
-  }, { passive: false });
+  if (!drawing) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const { x, y } = getCanvasCoords(touch);
+  drawStroke(x, y);
+}, { passive: false });
 
   document.getElementById("save-drawing").onclick = () => {
     canvas.toBlob(async (blob) => {
