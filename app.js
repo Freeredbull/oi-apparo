@@ -214,8 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========== DRAWING PAD LOGIC ==========
 
 const lineImages = {
-  horse: "/assets/horse-line.png",
-  bat: "/assets/bat-draw.png"
+  horse: "/assets/horse-draw.png",
+  bat: "/assets/bat-line.png"
 };
 
 const canvas = document.getElementById("draw-canvas");
@@ -281,7 +281,12 @@ if (canvas && ctx && drawModal) {
     drawModal.style.display = "none";
   };
 
-  canvas.addEventListener("mousedown", () => drawing = true);
+canvas.addEventListener("mousedown", (e) => {
+  drawing = true;
+  const { x, y } = getCanvasCoords(e);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+});
   canvas.addEventListener("mouseup", () => {
     drawing = false;
     ctx.beginPath();
@@ -289,7 +294,13 @@ if (canvas && ctx && drawModal) {
   canvas.addEventListener("mousemove", drawStroke);
   canvas.addEventListener("mouseout", () => drawing = false);
   
-  canvas.addEventListener("touchstart", () => drawing = true);
+canvas.addEventListener("touchstart", (e) => {
+  drawing = true;
+  const touch = e.touches[0];
+  const { x, y } = getCanvasCoords(touch);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+});
   canvas.addEventListener("touchend", () => drawing = false);
   canvas.addEventListener("touchmove", e => {
     e.preventDefault();
