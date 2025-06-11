@@ -11,7 +11,7 @@ let nixtopMode = false;
 let postPage = 0;
 let loadingPosts = false;
 let allPostsLoaded = false;
-const postsPerPage = 15;
+const postsPerPage = 15; // ✅ fixed missing definition
 
 const btnApparos = document.getElementById('mode-apparos');
 const btnNixtop = document.getElementById('mode-nixtop');
@@ -21,6 +21,7 @@ btnApparos.addEventListener('click', () => {
   document.documentElement.classList.remove('nixtop-active');
   btnApparos.classList.add('active');
   btnNixtop.classList.remove('active');
+    // ⬅️ Change header text
   document.querySelector('h1').textContent = '🐎 OI APPARO';
   postPage = 0;
   allPostsLoaded = false;
@@ -33,33 +34,41 @@ btnNixtop.addEventListener('click', () => {
   document.documentElement.classList.add('nixtop-active');
   btnApparos.classList.remove('active');
   btnNixtop.classList.add('active');
+  // ⬅️ Change header text
   document.querySelector('h1').textContent = '🦇 OI NIXTOPAPPARO';
   nixtopSound.currentTime = 0;
-  nixtopSound.play().catch(() => {});
+  nixtopSound.play().catch(() => {
+    console.warn('🔇 Nixtop sound blocked until user interacts.');
+  });
   postPage = 0;
   allPostsLoaded = false;
   window.scrollTo({ top: 0, behavior: 'smooth' });
   loadPosts(false);
 });
 
+// Unique session ID
 let sessionId = localStorage.getItem('online_user_id');
 if (!sessionId) {
   sessionId = crypto.randomUUID();
   localStorage.setItem('online_user_id', sessionId);
 }
 
+// Online presence
 async function refreshOnlineStatus() {
   const now = new Date().toISOString();
   await client.from('online_users').upsert({ id: sessionId, last_seen: now });
+
   const { count } = await client
     .from('online_users')
     .select('id', { count: 'exact' })
     .gte('last_seen', new Date(Date.now() - 2 * 60 * 1000).toISOString());
+
   if (count !== null) {
     document.getElementById('online-count').textContent = `🟢 ${count} online now`;
   }
 }
 
+// Submit a new post
 window.submitPost = async function () {
   const content = document.getElementById('postContent').value.trim();
   const fileInput = document.getElementById('postImage');
@@ -69,6 +78,7 @@ window.submitPost = async function () {
   const hasUpload = imageChoice === 'upload' && fileInput.files.length > 0;
   const hasDrawing = imageChoice === 'draw' && document.getElementById('image-url-input').value;
 
+  // ✅ Allow post if either text, uploaded image, or drawing is provided
   if (!content && !hasUpload && !hasDrawing) {
     return alert("Please enter text, upload an image, or draw something!");
   }
@@ -86,12 +96,16 @@ window.submitPost = async function () {
   }
 
   await client.from('posts').insert([{ content, image_url: imageUrl }]);
+
+  // Reset fields
   document.getElementById('postContent').value = '';
   fileInput.value = '';
   document.getElementById('image-url-input').value = '';
+
   loadPosts();
 };
 
+// Voting
 window.vote = async function (postId, type) {
   const votes = JSON.parse(localStorage.getItem('oiap_votes') || '{}');
   if (votes[postId]) return alert('You already voted!');
@@ -101,20 +115,25 @@ window.vote = async function (postId, type) {
   loadPosts();
 };
 
+// Load Posts
 async function loadPosts(append = true) {
   if (loadingPosts || allPostsLoaded) return;
   loadingPosts = true;
+
   const { data: posts, error } = await client
     .from('posts')
     .select('id, content, image_url, created_at, votes(type)')
     .order('created_at', { ascending: false })
     .range(postPage * postsPerPage, (postPage + 1) * postsPerPage - 1);
+
   if (error) {
     console.error("Error loading posts:", error.message);
     loadingPosts = false;
     return;
   }
+
   if (posts.length < postsPerPage) allPostsLoaded = true;
+
   const postsDiv = document.getElementById('posts');
   if (!append) postsDiv.innerHTML = '';
 
@@ -122,10 +141,12 @@ async function loadPosts(append = true) {
     const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
     const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
     const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
+
     const original = post.content;
     const content = nixtopMode ? original.replace(/apparo/gi, 'Nixtopapparo') : original;
     const hasApparo = content.toLowerCase().includes('apparo');
     const emoji = nixtopMode ? '🦇' : '🐎';
+
     const div = document.createElement('div');
     div.className = 'post';
     if (hasApparo && !nixtopMode) {
@@ -133,6 +154,7 @@ async function loadPosts(append = true) {
       horseSound.currentTime = 0;
       horseSound.play().catch(() => {});
     }
+
     div.innerHTML = `
       <p>${hasApparo ? emoji + ' ' : ''}${content}</p>
       ${post.image_url ? `<img src="${post.image_url}" />` : ''}
@@ -142,12 +164,15 @@ async function loadPosts(append = true) {
         <button onclick="vote('${post.id}', 'horse')">${emoji} ${horseVotes}</button>
       </div>
     `;
+
     postsDiv.appendChild(div);
   });
+
   postPage++;
   loadingPosts = false;
 }
 
+// Load Marquee
 async function loadMarqueeTopPosts() {
   const { data: posts } = await client
     .from('posts')
@@ -171,13 +196,133 @@ async function loadMarqueeTopPosts() {
     top.length > 0 ? top.join('   •   ') : 'No top posts yet. Be the first to post something legendary. 🐎';
 }
 
+// Init
 document.addEventListener('DOMContentLoaded', () => {
   loadMarqueeTopPosts();
   refreshOnlineStatus();
   loadPosts(false);
+
   setInterval(refreshOnlineStatus, 60 * 1000);
+
   window.addEventListener('scroll', () => {
     const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
     if (nearBottom) loadPosts(true);
   });
+
 });
+
+// ========== DRAWING PAD LOGIC ==========
+
+const lineImages = {
+  horse: "/assets/horse-draw.png",
+  bat: "/assets/bat-line.png"
+};
+
+const canvas = document.getElementById("draw-canvas");
+const ctx = canvas?.getContext("2d");
+const drawModal = document.getElementById("draw-modal");
+
+if (canvas && ctx && drawModal) {
+  let drawing = false;
+  let mode = "draw"; // or 'erase'
+
+  function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX || e.pageX) - rect.left,
+      y: (e.clientY || e.pageY) - rect.top
+    };
+  }
+
+  function drawStroke(e) {
+    if (!drawing) return;
+    const { x, y } = getCanvasCoords(e);
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  function loadLineArt(type) {
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = lineImages[type];
+  }
+
+  document.getElementById("draw-btn").onclick = () => {
+    drawModal.style.display = "block";
+    loadLineArt("horse");
+  };
+
+  document.getElementById("select-horse").onclick = () => loadLineArt("horse");
+  document.getElementById("select-bat").onclick = () => loadLineArt("bat");
+
+  document.getElementById("draw-tool").onclick = () => {
+    mode = "draw";
+    ctx.strokeStyle = "#00FF00";
+  };
+
+  document.getElementById("erase-tool").onclick = () => {
+    mode = "erase";
+    ctx.strokeStyle = "#000000";
+  };
+
+  document.getElementById("clear-drawing").onclick = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  document.getElementById("close-drawing").onclick = () => {
+    drawModal.style.display = "none";
+  };
+
+canvas.addEventListener("mousedown", (e) => {
+  drawing = true;
+  const { x, y } = getCanvasCoords(e);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+});
+  canvas.addEventListener("mouseup", () => {
+    drawing = false;
+    ctx.beginPath();
+  });
+  canvas.addEventListener("mousemove", drawStroke);
+  canvas.addEventListener("mouseout", () => drawing = false);
+  
+canvas.addEventListener("touchstart", (e) => {
+  drawing = true;
+  const touch = e.touches[0];
+  const { x, y } = getCanvasCoords(touch);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+});
+  canvas.addEventListener("touchend", () => drawing = false);
+  canvas.addEventListener("touchmove", e => {
+    e.preventDefault();
+    drawStroke(e.touches[0]);
+  }, { passive: false });
+
+  document.getElementById("save-drawing").onclick = () => {
+    canvas.toBlob(async (blob) => {
+      const filePath = `drawings/${crypto.randomUUID()}.png`;
+      const { error } = await client.storage.from("images").upload(filePath, blob, {
+        contentType: "image/png"
+      });
+
+      if (error) {
+        alert("Upload failed");
+        return;
+      }
+
+      const { data } = client.storage.from("images").getPublicUrl(filePath);
+      document.getElementById("image-url-input").value = data.publicUrl;
+
+      drawModal.style.display = "none";
+    });
+  };
+}
