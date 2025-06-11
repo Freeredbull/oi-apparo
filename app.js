@@ -202,13 +202,29 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshOnlineStatus();
   loadPosts(false);
 
+  const drawLaunch = document.getElementById("draw-launch");
+  const uploadSection = document.getElementById("upload-section");
+  const imageRadios = document.querySelectorAll('input[name="image-source"]');
+  const drawPreview = document.getElementById("draw-preview");
+
+  imageRadios.forEach(radio => {
+    radio.addEventListener("change", () => {
+      if (radio.value === "draw" && radio.checked) {
+        drawLaunch.style.display = "block";
+        uploadSection.style.display = "none";
+      } else {
+        drawLaunch.style.display = "none";
+        uploadSection.style.display = "block";
+      }
+    });
+  });
+
   setInterval(refreshOnlineStatus, 60 * 1000);
 
   window.addEventListener('scroll', () => {
     const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
     if (nearBottom) loadPosts(true);
   });
-
 });
 
 // ========== DRAWING PAD LOGIC ==========
