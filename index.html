@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <div id="marquee-container">
     <div id="marquee-text">🔄 Loading top posts...</div>
   </div>
@@ -18,51 +19,46 @@
     <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
   </div>
 
-  <div id="online-count" style="font-size: 0.9em; color: green;">🟢 loading...</div>
+  <div id="online-count">🟢 loading...</div>
 
   <div class="container">
     <div class="post-form">
-      <label for="postContent" style="font-weight: bold;">Write your post:</label>
       <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
 
-      <!-- Image Input Section -->
-      <div style="margin-top: 15px;">
-        <p style="margin-bottom: 5px; font-weight: bold;">Add an image:</p>
-        <label style="margin-right: 15px;">
-          <input type="radio" name="image-source" value="upload" checked>
-          Upload an image
+      <div class="image-source">
+        <strong>Attach image:</strong><br/>
+        <label>
+          <input type="radio" name="image-source" value="upload" checked />
+          📁 Upload
         </label>
-        <input type="file" id="postImage" accept="image/*" style="margin-top: 5px; display: block;" />
+        <input type="file" id="postImage" accept="image/*" />
 
-        <label style="margin-top: 10px; display: inline-block;">
-          <input type="radio" name="image-source" value="draw">
-          Draw your own
+        <label>
+          <input type="radio" name="image-source" value="draw" />
+          ✏️ Draw
         </label>
       </div>
 
-      <!-- Draw Pad Section -->
-      <div id="draw-section" style="display:none; margin-top: 15px; background: #111; padding: 12px; border: 2px solid green; border-radius: 8px;">
-        <div style="margin-bottom: 10px; text-align: center;">
-          <strong>Choose a base:</strong>
+      <div id="draw-section">
+        <div class="draw-buttons">
           <button id="select-horse">🐎 Horse</button>
           <button id="select-bat">🦇 Bat</button>
         </div>
 
-        <div style="text-align: center;">
-          <canvas id="draw-canvas" width="300" height="300" style="border:2px solid green; background:black;"></canvas>
-        </div>
+        <canvas id="draw-canvas" width="300" height="300"></canvas>
 
-        <div style="margin-top: 10px; text-align: center;">
+        <div class="draw-controls">
           <button id="draw-tool">🖌 Draw</button>
           <button id="erase-tool">🧽 Erase</button>
           <button id="clear-drawing">🧹 Clear</button>
         </div>
       </div>
 
-      <!-- Hidden input to store URL of drawing if used -->
-      <input type="hidden" id="image-url-input">
+      <input type="hidden" id="image-url-input" />
 
-      <button onclick="submitPost()" style="margin-top: 15px;">Post</button>
+      <div class="submit-wrapper">
+        <button onclick="submitPost()">📨 Post</button>
+      </div>
     </div>
 
     <div id="posts"></div>
