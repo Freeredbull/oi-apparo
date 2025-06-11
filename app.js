@@ -339,6 +339,7 @@ canvas.addEventListener("touchstart", (e) => {
       document.getElementById("image-url-input").value = data.publicUrl;
 
       drawModal.style.display = "none";
+      drawPreview.style.display = "block";
     });
   };
 }
