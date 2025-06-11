@@ -30,11 +30,30 @@
   <label style="margin-left: 10px;">
     <input type="radio" name="image-source" value="draw"> Draw
   </label>
-  <button type="button" id="draw-btn">✏️ Open Draw Pad</button>
+<!-- Updated Image Source Section -->
+<div style="margin-top: 10px;">
+  <label>
+    <input type="radio" name="image-source" value="upload" checked> Upload
+  </label>
+  <div id="upload-section">
+    <input type="file" id="postImage" accept="image/*" />
+  </div>
+
+  <label style="margin-left: 10px;">
+    <input type="radio" name="image-source" value="draw"> Draw
+  </label>
+  <div id="draw-launch" style="margin-top: 6px; display: none;">
+    <button type="button" id="draw-btn">✏️ Open Draw Pad</button>
+  </div>
+</div>
 </div>
 
 <!-- Hidden input to store URL of drawing if used -->
 <input type="hidden" id="image-url-input">
+      <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
+  ✅ Drawing saved and ready to post.
+</div>
+
 
 <button onclick="submitPost()">Post</button>
 
