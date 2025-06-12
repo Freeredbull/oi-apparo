@@ -21,43 +21,64 @@
   <div id="online-count" style="font-size: 0.9em; color: green;">🟢 loading...</div>
 
   <div class="container">
+    <!-- Post Form -->
     <div class="post-form">
       <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
 
-      <!-- Image Source Selection -->
-<div class="image-source-options" style="margin-top: 16px;">
-  <div>
-    <label>
-      <input type="radio" name="image-source" value="upload" checked>
-      📁 Upload
-    </label>
-  </div>
-
-  <div id="upload-section" style="margin-top: 8px;">
-    <input type="file" id="postImage" accept="image/*" />
-  </div>
-
-  <div style="margin-top: 12px;">
-    <label>
-      <input type="radio" name="image-source" value="draw">
-      ✏️ Draw
-    </label>
-  </div>
-
-  <div id="draw-launch" style="margin-top: 6px; display: none;">
-    <button type="button" id="draw-btn">🎨 Open Draw Pad</button>
-  </div>
-
-  <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
-    ✅ Drawing saved and ready to post.
-  </div>
-  <input type="hidden" id="image-url-input" />
-</div>
+      <div class="image-source-options" style="margin-top: 16px;">
+        <div>
+          <label>
+            <input type="radio" name="image-source" value="upload" checked> 📁 Upload
+          </label>
+        </div>
+        <div id="upload-section" style="margin-top: 8px;">
+          <input type="file" id="postImage" accept="image/*" />
+        </div>
+        <div style="margin-top: 12px;">
+          <label>
+            <input type="radio" name="image-source" value="draw"> ✏️ Draw
+          </label>
+        </div>
+        <div id="draw-launch" style="margin-top: 6px; display: none;">
+          <button type="button" id="draw-btn">🎨 Open Draw Pad</button>
+        </div>
+        <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
+          ✅ Drawing saved and ready to post.
+        </div>
+        <input type="hidden" id="image-url-input" />
+      </div>
 
       <button onclick="submitPost()">📨 Post</button>
     </div>
 
     <div id="posts"></div>
+
+    <!-- 🎵 Music Room Section -->
+    <div class="music-room" style="margin-top: 40px;">
+      <h2>🎧 Music Rooms (SyncTube Style)</h2>
+
+      <div style="margin-bottom: 12px;">
+        <input type="text" id="room-code-input" placeholder="Room Code" />
+        <input type="password" id="room-password-input" placeholder="Password (if any)" />
+        <button id="join-room">🔑 Join</button>
+        <button id="create-room">➕ Create Room</button>
+      </div>
+
+      <div id="room-interface" style="display:none; margin-top: 20px;">
+        <p><strong>🎼 Current Room:</strong> <span id="current-room-code"></span></p>
+
+        <input type="text" id="youtube-url" placeholder="YouTube Link (Audio Only)" style="width: 60%;" />
+        <button id="add-track">➕ Add Track</button>
+
+        <ul id="track-list" style="list-style: none; padding: 0; margin-top: 16px;"></ul>
+
+        <div style="margin-top: 12px;">
+          <button id="next-track">⏭ Next</button>
+        </div>
+
+        <audio id="audio-player" controls style="margin-top: 16px; width: 100%;"></audio>
+      </div>
+    </div>
   </div>
 
   <!-- Drawing Pad Modal -->
