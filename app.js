@@ -5,114 +5,213 @@ const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
 const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// == Global State for Music Room ==
-let currentRoomId = null;
-let currentRoomCode = null;
-let isRoomOwner = false;
+// == Audio Files ==
+const horseSound = new Audio('/assets/horse.mp3');
+const nixtopSound = new Audio('/assets/nixtop-toggle.mp3');
 
-// == DOM Elements ==
-const musicRoomDiv = document.getElementById('music-room');
-const roomCodeInput = document.getElementById('room-code-input');
-const joinRoomBtn = document.getElementById('join-room-btn');
-const createRoomBtn = document.getElementById('create-room-btn');
-const roomPasswordInput = document.getElementById('room-password');
-const musicStatus = document.getElementById('music-status');
-const musicControls = document.getElementById('music-controls');
-const ytLinkInput = document.getElementById('youtube-link');
-const addTrackBtn = document.getElementById('add-track');
-const nextTrackBtn = document.getElementById('next-track');
-const audioPlayer = document.getElementById('yt-audio');
+// == Global State ==
+let nixtopMode = false;
+let postPage = 0;
+let loadingPosts = false;
+let allPostsLoaded = false;
+const postsPerPage = 15;
 
-// == Helper Functions ==
-function generateCode(length = 6) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+// == UI Elements ==
+const drawPreview = document.getElementById("draw-preview");
+const drawModal = document.getElementById("draw-modal");
+const canvas = document.getElementById("draw-canvas");
+const ctx = canvas?.getContext("2d");
+
+// == Drawing Pad Setup ==
+if (canvas && ctx && drawModal) {
+  let drawing = false;
+  let mode = "draw";
+
+  function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX || e.touches?.[0]?.clientX) - rect.left,
+      y: (e.clientY || e.touches?.[0]?.clientY) - rect.top
+    };
+  }
+
+  function drawStroke(x, y) {
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  const lineImages = {
+    horse: "/assets/horse-draw.png",
+    bat: "/assets/bat-line.png"
+  };
+
+  function loadLineArt(type) {
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = lineImages[type];
+  }
+
+  document.getElementById("select-horse").onclick = () => loadLineArt("horse");
+  document.getElementById("select-bat").onclick = () => loadLineArt("bat");
+  document.getElementById("draw-tool").onclick = () => {
+    mode = "draw";
+    ctx.strokeStyle = "#00FF00";
+  };
+  document.getElementById("erase-tool").onclick = () => {
+    mode = "erase";
+    ctx.strokeStyle = "#000000";
+  };
+  document.getElementById("clear-drawing").onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById("close-drawing").onclick = () => drawModal.style.display = "none";
+
+  canvas.addEventListener("mousedown", e => {
+    drawing = true;
+    const { x, y } = getCanvasCoords(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  });
+
+  canvas.addEventListener("mousemove", e => {
+    if (!drawing) return;
+    const { x, y } = getCanvasCoords(e);
+    drawStroke(x, y);
+  });
+
+  canvas.addEventListener("mouseup", () => drawing = false);
+  canvas.addEventListener("mouseout", () => drawing = false);
+  canvas.addEventListener("touchstart", e => {
+    drawing = true;
+    const { x, y } = getCanvasCoords(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  });
+  canvas.addEventListener("touchend", () => drawing = false);
+  canvas.addEventListener("touchmove", e => {
+    if (!drawing) return;
+    e.preventDefault();
+    const { x, y } = getCanvasCoords(e);
+    drawStroke(x, y);
+  }, { passive: false });
+
+  document.getElementById("save-drawing").onclick = () => {
+    canvas.toBlob(async (blob) => {
+      const filePath = `drawings/${crypto.randomUUID()}.png`;
+      const { error } = await client.storage.from("images").upload(filePath, blob, {
+        contentType: "image/png"
+      });
+      if (error) return alert("Upload failed");
+      const { data } = client.storage.from("images").getPublicUrl(filePath);
+      document.getElementById("image-url-input").value = data.publicUrl;
+      drawModal.style.display = "none";
+      drawPreview.style.display = "block";
+    });
+  };
 }
 
-function extractYouTubeID(url) {
-  const match = url.match(/(?:youtube\.com.*(?:\?|&)v=|youtu\.be\/)([\w-]+)/);
-  return match ? match[1] : null;
-}
+// == Draw Pad Launcher ==
+document.getElementById("draw-btn").addEventListener("click", () => {
+  document.getElementById("draw-modal").style.display = "block";
+});
 
-function playTrack(videoId) {
-  if (!videoId) return;
-  audioPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0`;
-  audioPlayer.style.display = 'block';
-  musicStatus.textContent = `▶️ Now playing: ${videoId}`;
-}
+// == Post Submission ==
+window.submitPost = async function () {
+  const content = document.getElementById('postContent').value.trim();
+  const fileInput = document.getElementById('postImage');
+  const imageChoice = document.querySelector('input[name="image-source"]:checked').value;
+  let imageUrl = null;
 
-// == Supabase Room Functions ==
-async function createRoom() {
-  const password = roomPasswordInput.value.trim();
-  if (!password) return alert('Password is required');
+  const hasUpload = imageChoice === 'upload' && fileInput.files.length > 0;
+  const hasDrawing = imageChoice === 'draw' && document.getElementById('image-url-input').value;
 
-  const code = generateCode();
-  const { data, error } = await client.from('music_rooms').insert({ code, password });
+  if (!content && !hasUpload && !hasDrawing) return alert("Please enter text, upload an image, or draw something!");
 
-  if (error) return alert('Failed to create room');
-  currentRoomCode = code;
-  isRoomOwner = true;
-  musicStatus.textContent = `✅ Room created. Code: ${code}`;
-  musicControls.style.display = 'block';
-  pollRoom(code);
-}
+  if (hasUpload) {
+    const file = fileInput.files[0];
+    const fileName = `${Date.now()}_${file.name}`;
+    await client.storage.from('images').upload(fileName, file);
+    const { data } = client.storage.from('images').getPublicUrl(fileName);
+    imageUrl = data.publicUrl;
+  }
 
-async function joinRoom() {
-  const code = roomCodeInput.value.trim().toUpperCase();
-  const password = roomPasswordInput.value.trim();
-  if (!code || !password) return alert('Code and password required');
+  if (hasDrawing) {
+    imageUrl = document.getElementById('image-url-input').value;
+  }
 
-  const { data, error } = await client.from('music_rooms').select('*').eq('code', code).single();
-  if (error || !data || data.password !== password) return alert('Invalid code or password');
+  await client.from('posts').insert([{ content, image_url: imageUrl }]);
 
-  currentRoomCode = code;
-  musicStatus.textContent = `🎧 Joined room: ${code}`;
-  pollRoom(code);
-}
+  document.getElementById('postContent').value = '';
+  fileInput.value = '';
+  document.getElementById('image-url-input').value = '';
+  drawPreview.style.display = 'none';
+  loadPosts();
+};
 
-async function addTrack() {
-  const url = ytLinkInput.value.trim();
-  const vid = extractYouTubeID(url);
-  if (!vid || !currentRoomCode) return alert('Invalid YouTube URL or not in a room');
+// == Post Voting ==
+window.vote = async function (postId, type) {
+  const votes = JSON.parse(localStorage.getItem('oiap_votes') || '{}');
+  if (votes[postId]) return alert('You already voted!');
+  await client.from('votes').insert([{ post_id: postId, type }]);
+  votes[postId] = type;
+  localStorage.setItem('oiap_votes', JSON.stringify(votes));
+  loadPosts();
+};
 
-  await client.from('music_queue').insert({ room_code: currentRoomCode, video_id: vid });
-  ytLinkInput.value = '';
-  musicStatus.textContent = `🎵 Added track to queue.`;
-}
+// == Load Posts ==
+async function loadPosts(append = true) {
+  if (loadingPosts || allPostsLoaded) return;
+  loadingPosts = true;
 
-async function nextTrack() {
-  if (!currentRoomCode || !isRoomOwner) return alert('Only room owner can skip');
+  const { data: posts, error } = await client
+    .from('posts')
+    .select('id, content, image_url, created_at, votes(type)')
+    .order('created_at', { ascending: false })
+    .range(postPage * postsPerPage, (postPage + 1) * postsPerPage - 1);
 
-  const { data: queue } = await client.from('music_queue')
-    .select('*')
-    .eq('room_code', currentRoomCode)
-    .order('id', { ascending: true })
-    .limit(1);
+  if (error) {
+    console.error("Error loading posts:", error.message);
+    loadingPosts = false;
+    return;
+  }
 
-  if (!queue?.length) return alert('No tracks in queue');
+  if (posts.length < postsPerPage) allPostsLoaded = true;
 
-  const next = queue[0];
-  playTrack(next.video_id);
-  await client.from('music_queue').delete().eq('id', next.id);
-}
+  const postsDiv = document.getElementById('posts');
+  if (!append) postsDiv.innerHTML = '';
 
-function pollRoom(code) {
-  setInterval(async () => {
-    if (isRoomOwner) return; // clients wait for next
-    const { data: queue } = await client.from('music_queue')
-      .select('*')
-      .eq('room_code', code)
-      .order('id', { ascending: true })
-      .limit(1);
-    if (queue?.length) {
-      const current = queue[0];
-      playTrack(current.video_id);
+  posts.forEach(post => {
+    const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
+    const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
+    const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
+
+    const content = nixtopMode ? post.content.replace(/apparo/gi, 'Nixtopapparo') : post.content;
+    const emoji = nixtopMode ? '🦇' : '🐎';
+    const div = document.createElement('div');
+    div.className = 'post';
+    if (content.toLowerCase().includes('apparo') && !nixtopMode) {
+      div.classList.add('trigger-apparo');
+      horseSound.currentTime = 0;
+      horseSound.play().catch(() => {});
     }
-  }, 5000);
-}
+    div.innerHTML = `
+      <p>${emoji} ${content}</p>
+      ${post.image_url ? `<img src="${post.image_url}" />` : ''}
+      <div style="margin-top:10px;display:flex;gap:10px;">
+        <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
+        <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
+        <button onclick="vote('${post.id}', 'horse')">${emoji} ${horseVotes}</button>
+      </div>
+    `;
+    postsDiv.appendChild(div);
+  });
 
-// == Event Listeners ==
-createRoomBtn.onclick = createRoom;
-joinRoomBtn.onclick = joinRoom;
-addTrackBtn.onclick = addTrack;
-nextTrackBtn.onclick = nextTrack;
+  postPage++;
+  loadingPosts = false;
+}
