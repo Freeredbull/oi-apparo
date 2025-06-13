@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎧 OI Rooms</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🎧 OI Music Rooms</h1>
+
+  <div class="room-actions">
+    <input type="text" id="room-code-input" placeholder="Room Code" />
+    <input type="password" id="room-password-input" placeholder="Password" />
+    <button id="join-room">🔑 Join</button>
+    <button id="create-room">➕ Create Room</button>
+  </div>
+
+  <div id="room-interface" style="display:none;">
+    <p>🎼 Current Room: <span id="current-room-code"></span></p>
+
+    <input type="text" id="youtube-url" placeholder="YouTube Link" />
+    <button id="add-track">➕ Add</button>
+
+    <ul id="track-list"></ul>
+
+    <button id="next-track">⏭ Next</button>
+
+    <audio id="audio-player" controls style="width:100%; margin-top:1em;"></audio>
+  </div>
+
+  <script type="module" src="rooms.js"></script>
+</body>
+</html>
