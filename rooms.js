@@ -1,157 +1,179 @@
-/* OI APPARO – Synced Music Rooms with YouTube & Chat */
+/*  OI APPARO – Synced Music-Room module  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://gycoadvqrogvmrdmxntn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI';
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// === DOM refs ===
-const $ = (id) => document.getElementById(id);
-const codeIn = $('room-code-input');
-const passIn = $('room-password-input');
-const ytInput = $('youtube-url');
+/* ───────── helpers ───────── */
+const $ = id => document.getElementById(id);
+const rand = (set, n) => Array.from({length:n}, _=>set[Math.floor(Math.random()*set.length)]).join('');
+const genCode     = () => rand('ABCDEFGHJKMNPQRSTUVWXYZ23456789',6);
+const genPassword = () => rand('abcdefghijkmnpqrstuvwxyz23456789',8);
+const ytId = url => { const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/); return m?m[1]:null; };
+
+/* ───────── state ───────── */
+let roomCode   = null;      // 6-char code
+let isOwner    = false;
+let pollTimer  = null;
+const userName = `apparo${Math.floor(Math.random()*1000)}`;
+
+/* ───────── DOM refs ───────── */
+const codeIn   = $('room-code-input');
+const passIn   = $('room-password-input');
+const setupBox = $('room-setup');
+const roomBox  = $('room-interface');
+const createdInfo = $('created-room-info');
+const createdCode = $('created-room-code');
+const createdPass = $('created-room-pass');
+const currCode = $('current-room-code');
+const ownerHint = $('owner-hint');
+
+const ytInput  = $('youtube-url');
+const addBtn   = $('add-track');
+const nextBtn  = $('next-track');
+const listUL   = $('track-list');
+const iframe   = $('yt-player');
+
 const chatInput = $('chat-input');
-const chatList = $('chat-list');
-const videoFrame = $('yt-player');
-const trackList = $('track-list');
-const currentCode = $('current-room-code');
-const chatBox = $('chat-box');
+const sendBtn   = $('send-chat');
+const chatUL    = $('chat-list');
 
-let currentRoom = null;
-let isOwner = false;
-let userName = `apparo${Math.floor(Math.random() * 1000)}`;
-let pollingInterval = null;
-
-// === Room Actions ===
+/* ───────── room workflow ───────── */
 async function createRoom() {
-  const code = generateCode();
-  const pass = generatePassword();
-  await db.from('rooms').insert({ code, password: pass });
+  const code = genCode();
+  const pass = genPassword();
+  const { error } = await db.from('rooms').insert({ code, password:pass });
+  if (error) { alert('DB error – could not create'); return; }
+  createdCode.textContent = code;
+  createdPass.textContent = pass;
+  createdInfo.style.display = 'block';
   enterRoom(code, pass, true);
 }
 
 async function joinRoom() {
   const code = codeIn.value.trim().toUpperCase();
   const pass = passIn.value.trim();
-  const { data, error } = await db.from('rooms').select('*').eq('code', code).single();
-  if (error || !data || data.password !== pass) return alert('Room not found or wrong password');
+  if (!code || !pass) return alert('Enter code & password');
+  const { data, error } = await db.from('rooms').select('*').eq('code',code).single();
+  if (error || !data)           return alert('Room not found');
+  if (data.password !== pass)   return alert('Wrong password');
   enterRoom(code, pass, false);
 }
 
-function enterRoom(code, pass, owner) {
-  currentRoom = code;
-  isOwner = owner;
-  currentCode.textContent = `${code} (🔐 ${pass}) - You are ${userName}`;
-  chatBox.style.display = 'block';
-  if (pollingInterval) clearInterval(pollingInterval);
-  pollingInterval = setInterval(pollState, 5000);
-  pollState();
+function enterRoom(code, pass, ownerFlag) {
+  roomCode  = code;
+  isOwner   = ownerFlag;
+  currCode.textContent = `${code} (🔐 ${pass}) – you are ${userName}`;
+  ownerHint.style.display = ownerFlag? 'block':'none';
+  nextBtn.disabled       = !ownerFlag;
+
+  setupBox.style.display = 'none';
+  roomBox.style.display  = 'block';
+
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => { refreshQueue(); refreshChat(); }, 4000);
+  refreshQueue();   // initial
+  refreshChat();
 }
 
-// === Track Actions ===
+/* ───────── queue logic ───────── */
 async function addTrack() {
-  const url = ytInput.value.trim();
-  const videoId = extractYouTubeID(url);
-  if (!videoId || !currentRoom) return alert("Invalid YouTube link or not in a room");
+  const full = ytInput.value.trim();
+  const id   = ytId(full);
+  if (!roomCode)    return alert('Join / create a room first');
+  if (!id)          return alert('Bad YouTube link');
 
-  const insertData = {
-    room_code: currentRoom,                  // 6-char room code like 'RF7DHX'
-    youtube_url: url,                        // Full link
-    video_id: videoId,                       // Only the ID
-    status: 'queued',                        // Optional logic
-    added_by: userName,                      // e.g. 'apparo123'
-    start_time: new Date().toISOString()     // For sync
-    // room_id: you can skip this if you're only using room_code
-  };
-
-  console.log("Inserting video:", insertData); // ✅ debug
-
-  const { error } = await db.from('room_videos').insert(insertData);
-  if (error) {
-    console.error("Error inserting video:", error.message);
-    alert("Failed to add track");
-    return;
-  }
-
-  ytInput.value = '';
-  refreshQueue();
-}
-
-
-
-async function playNextTrack() {
-  if (!isOwner) return;
-  const { data } = await db.from('room_videos').select('*').eq('room_code', currentRoom).order('id', { ascending: true }).limit(1);
-  const track = data?.[0];
-  if (!track) return;
-  await db.from('room_videos').update({ status: 'playing', start_time: new Date().toISOString() }).eq('id', track.id);
-}
-
-async function pollState() {
-  await refreshQueue();
-  await refreshChat();
+  await db.from('room_videos').insert({
+    room_code   : roomCode,
+    youtube_url : full,
+    video_id    : id,
+    status      : 'queued',
+    added_by    : userName
+  });
+  ytInput.value='';
 }
 
 async function refreshQueue() {
-  const { data } = await db.from('room_videos').select('*').eq('room_code', currentRoom).order('id', { ascending: true });
+  if (!roomCode) return;
+  const { data } = await db.from('room_videos')
+      .select('*')
+      .eq('room_code', roomCode)
+      .order('id',{ascending:true});
+
   if (!data) return;
-  trackList.innerHTML = '';
-  data.forEach((track, i) => {
-    const li = document.createElement('li');
-    li.textContent = `${i === 0 ? '▶️' : '🎵'} ${track.video_id} (by ${track.added_by})`;
-    trackList.appendChild(li);
+
+  /* update list */
+  listUL.innerHTML='';
+  data.forEach((t,i)=>{
+    const li=document.createElement('li');
+    li.textContent=`${t.status==='playing'?'▶️':'🎵'} ${t.video_id} • ${t.added_by}`;
+    listUL.appendChild(li);
   });
-  const playing = data.find(t => t.status === 'playing');
-  if (playing && playing.start_time) {
-    const startTime = new Date(playing.start_time).getTime();
-    const now = Date.now();
-    const offset = Math.floor((now - startTime) / 1000);
-    videoFrame.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0`;
+
+  /* playback sync */
+  let playing = data.find(t=>t.status==='playing');
+  if (!playing && isOwner && data.length){
+      // owner promotes first queued
+      const first = data[0];
+      await db.from('room_videos')
+             .update({ status:'playing', start_time: new Date().toISOString() })
+             .eq('id', first.id);
+      playing = {...first, status:'playing', start_time:new Date().toISOString()};
+  }
+  if (playing){
+      const offset = playing.start_time
+        ? Math.floor((Date.now() - new Date(playing.start_time).getTime())/1000)
+        : 0;
+      iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0`;
+      iframe.style.display='block';
   }
 }
 
-// === Chat ===
-async function sendMessage() {
+async function nextTrack(){
+  if (!isOwner) return;
+  const { data }=await db.from('room_videos')
+      .select('*')
+      .eq('room_code',roomCode)
+      .order('id',{ascending:true})
+      .limit(1);
+  if (!data?.length) return alert('Queue empty');
+  await db.from('room_videos').delete().eq('id',data[0].id);
+  await refreshQueue();
+}
+
+/* ───────── chat logic ───────── */
+async function sendChat(){
   const msg = chatInput.value.trim();
-  if (!msg) return;
-
+  if (!msg || !roomCode) return;
   await db.from('room_chats').insert({
-    room_code: currentRoom,      // changed from room_id
-    user_id: userName,
-    message: msg
+    room_code : roomCode,
+    sender    : userName,
+    message   : msg
   });
-
-  chatInput.value = '';
-  await refreshChat();
+  chatInput.value='';
 }
 
-
-async function refreshChat() {
-  const { data } = await db.from('room_chats').select('*').eq('room_code', currentRoom).order('created_at', { ascending: true });
-  chatList.innerHTML = '';
-  data.forEach(c => {
-    const li = document.createElement('li');
-    li.innerHTML = `<strong>${c.sender}</strong>: ${c.message}`;
-    chatList.appendChild(li);
+async function refreshChat(){
+  if (!roomCode) return;
+  const { data } = await db.from('room_chats')
+      .select('*')
+      .eq('room_code', roomCode)
+      .order('created_at',{ascending:true});
+  if (!data) return;
+  chatUL.innerHTML='';
+  data.forEach(c=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<strong>${c.sender}</strong>: ${c.message}`;
+    chatUL.appendChild(li);
   });
+  chatUL.scrollTop = chatUL.scrollHeight;
 }
 
-// === Utils ===
-function extractYouTubeID(url) {
-  const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
-  return m ? m[1] : null;
-}
-function generateCode() {
-  return Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-}
-function generatePassword() {
-  return Array.from({ length: 8 }, () => 'abcdefghijkmnopqrstuvwxyz23456789'[Math.floor(Math.random() * 32)]).join('');
-}
-
-// === Events ===
+/* ───────── wire-up ───────── */
 $('create-room').onclick = createRoom;
-$('join-room').onclick = joinRoom;
-$('add-track').onclick = addTrack;
-$('next-track').onclick = playNextTrack;
-$('send-chat').onclick = sendMessage;
-chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+$('join-room'  ).onclick = joinRoom;
+addBtn .onclick = addTrack;
+nextBtn.onclick = nextTrack;
+sendBtn.onclick = sendChat;
+chatInput.addEventListener('keydown',e=>{ if(e.key==='Enter') sendChat(); });
