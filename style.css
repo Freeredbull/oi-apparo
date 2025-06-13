@@ -467,4 +467,19 @@ button:focus {
   margin-right: 6px;
 }
 
+.nokia-button {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: black;
+  color: lime;
+  font-family: 'Courier New', monospace;
+  border: 2px solid lime;
+  text-decoration: none;
+  margin-top: 10px;
+}
+.nokia-button:hover {
+  background-color: lime;
+  color: black;
+}
+
 
