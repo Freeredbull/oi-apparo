@@ -1,4 +1,4 @@
-/*  OI APPARO – Synced Music-Room module  */
+/*  OI APPARO – Synced Music-Room module (Fixed Version) */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://gycoadvqrogvmrdmxntn.supabase.co';
@@ -79,19 +79,28 @@ function enterRoom(code, pass, ownerFlag) {
 
 /* ───────── queue logic ───────── */
 async function addTrack() {
-  const full = ytInput.value.trim();
-  const id   = ytId(full);
-  if (!roomCode)    return alert('Join / create a room first');
-  if (!id)          return alert('Bad YouTube link');
+  const url = ytInput.value.trim();
+  const videoId = ytId(url);
+  if (!videoId) return alert('Invalid YouTube link');
+  if (!roomCode) return alert('You must join a room first');
 
-  await db.from('room_videos').insert({
-    room_code   : roomCode,
-    youtube_url : full,
-    video_id    : id,
-    status      : 'queued',
-    added_by    : userName
-  });
-  ytInput.value='';
+  const track = {
+    room_code: roomCode,
+    youtube_url: url,
+    video_id: videoId,
+    status: 'queued',
+    added_by: userName,
+    start_time: null
+  };
+
+  const { error } = await db.from('room_videos').insert(track);
+  if (error) {
+    console.error('Track insert failed:', error.message);
+    alert('Could not add video');
+  } else {
+    ytInput.value = '';
+    refreshQueue();
+  }
 }
 
 async function refreshQueue() {
@@ -103,7 +112,6 @@ async function refreshQueue() {
 
   if (!data) return;
 
-  /* update list */
   listUL.innerHTML='';
   data.forEach((t,i)=>{
     const li=document.createElement('li');
@@ -111,10 +119,8 @@ async function refreshQueue() {
     listUL.appendChild(li);
   });
 
-  /* playback sync */
   let playing = data.find(t=>t.status==='playing');
   if (!playing && isOwner && data.length){
-      // owner promotes first queued
       const first = data[0];
       await db.from('room_videos')
              .update({ status:'playing', start_time: new Date().toISOString() })
