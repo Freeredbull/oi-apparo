@@ -74,7 +74,7 @@ function enterRoom(code, pass, ownerFlag) {
 
   setupBox.style.display = 'none';
   roomBox.style.display  = 'block';
-  currentCode.textContent = code;
+  currentCode.textContent = `${code} (🔐 ${pass})`;
   ownerHint.style.display = ownerFlag ? 'block' : 'none';
   nextBtn.disabled        = !ownerFlag;
 
