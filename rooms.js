@@ -167,9 +167,6 @@ async function refreshQueue() {
   iframe.style.display = 'block';
 }
 
-  }
-}
-
 async function nextTrack () {
   if (!isOwner) return;
 
