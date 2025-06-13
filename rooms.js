@@ -18,6 +18,8 @@ let isOwner   = false;
 let pollTimer = null;
 const userName = `apparo${Math.floor(Math.random() * 1000)}`;
 let currentVideoId = null;
+let currentVideoId = null;       // cache the ID that is already playing
+let ytPlayer       = null;       // handle from YouTube IFrame API
 
 /* ───────── DOM refs ───────── */
 const codeIn      = $('room-code-input');
@@ -141,15 +143,31 @@ async function refreshQueue() {
   }
 
   if (playing) {
-    const offset = playing.start_time
-      ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
-      : 0;
+  const offset = playing.start_time
+    ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
+    : 0;
 
-    if (playing.video_id !== currentVideoId) {
-      currentVideoId = playing.video_id;
-      iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0`;
-      iframe.style.display = 'block';
-    }
+  // Only reload if clip changed
+  if (playing.video_id !== currentVideoId) {
+    currentVideoId = playing.video_id;
+    iframe.src = `https://www.youtube.com/embed/${playing.video_id
+      }?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0&enablejsapi=1`;
+  }
+
+  // Add listener once (owner only)
+  if (isOwner && !ytPlayer && window.YT && window.YT.Player) {
+    ytPlayer = new YT.Player(iframe, {
+      events: {
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.ENDED) nextTrack();
+        }
+      }
+    });
+  }
+
+  iframe.style.display = 'block';
+}
+
   }
 }
 
@@ -217,3 +235,8 @@ sendBtn.onclick = sendChat;
 chatInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') sendChat();
 });
+
+/* ───────── load YT IFrame API once ───────── */
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
