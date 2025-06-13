@@ -14,11 +14,12 @@ const ytId = url   => { const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/); re
 /* promote the first queued clip to “playing” */
 async function promoteNext () {
   const { data: next } = await db
-      .from('room_videos')
-      .select('*')
-      .eq('room_code', roomCode)
-      .order('id', { ascending: true })
-      .limit(1);
+    .from('room_videos')
+    .select('*')
+    .eq('room_code', roomCode)
+    .eq('status', 'queued')  // <-- only promote queued videos
+    .order('id', { ascending: true })
+    .limit(1);
 
   if (next?.length) {
     await db.from('room_videos')
@@ -26,6 +27,7 @@ async function promoteNext () {
       .eq('id', next[0].id);
   }
 }
+
 /* ───────── state ───────── */
 let roomCode  = null;     // 6-char code
 let isOwner   = false;
@@ -155,11 +157,11 @@ async function refreshQueue() {
     : 0;
 
   // Only reload if clip changed
-  if (playing.video_id !== currentVideoId) {
-    currentVideoId = playing.video_id;
-    iframe.src = `https://www.youtube.com/embed/${playing.video_id
-      }?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0&enablejsapi=1`;
-  }
+  if (!currentVideoId || playing.video_id !== currentVideoId) {
+  currentVideoId = playing.video_id;
+  iframe.src = `https://www.youtube.com/embed/${playing.video_id
+    }?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0&enablejsapi=1`;
+}
 
     if (!ytPlayer && window.YT && window.YT.Player) {
       ytPlayer = new YT.Player(iframe, {
