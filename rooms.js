@@ -164,9 +164,9 @@ async function refreshQueue() {
     });
   }
 
-  iframe.style.display = 'block';
+ iframe.style.display = 'block';
 }
-
+}  
 async function nextTrack () {
   if (!isOwner) return;
 
