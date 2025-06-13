@@ -101,14 +101,14 @@ async function refreshQueue(){
       .order('id',{ascending:true});
 
   renderQueue(data || []);
-  if(data?.length) playTrack(data[0].Youtube_URL,false);
+  if(data?.length) playTrack(data[0].youtube_url,false);
 }
 
 function renderQueue(q){
   listUL.innerHTML = '';
   q.forEach((item,idx)=>{
     const li = document.createElement('li');
-    li.textContent = `${idx===0?'▶️':'🎵'} ${item.Youtube_URL}`;
+    li.textContent = `${idx===0?'▶️':'🎵'} ${item.youtube_url}`;
     listUL.appendChild(li);
   });
 }
@@ -120,7 +120,7 @@ async function addTrack(){
 
   await db.from('room_videos').insert({
     room_code: currentRoom,
-    Youtube_URL: id,
+    youtube_url: id,
     status: 'queued'
   });
   ytInput.value='';
