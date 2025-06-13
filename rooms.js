@@ -119,21 +119,26 @@ async function refreshQueue() {
     listUL.appendChild(li);
   });
 
-  let playing = data.find(t=>t.status==='playing');
-  if (!playing && isOwner && data.length){
-      const first = data[0];
-      await db.from('room_videos')
-             .update({ status:'playing', start_time: new Date().toISOString() })
-             .eq('id', first.id);
-      playing = {...first, status:'playing', start_time:new Date().toISOString()};
-  }
-  if (playing){
-      const offset = playing.start_time
-        ? Math.floor((Date.now() - new Date(playing.start_time).getTime())/1000)
-        : 0;
-      iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0`;
-      iframe.style.display='block';
-  }
+  let playing = data.find(t => t.status === 'playing');
+
+if (!playing && isOwner && data.length) {
+  const first = data[0];
+  const now = new Date().toISOString(); // Use this once
+
+  await db.from('room_videos')
+         .update({ status: 'playing', start_time: now })
+         .eq('id', first.id);
+
+  playing = { ...first, status: 'playing', start_time: now };
+}
+
+if (playing) {
+  const offset = playing.start_time
+    ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
+    : 0;
+
+  iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0`;
+  iframe.style.display = 'block';
 }
 
 async function nextTrack(){
