@@ -140,7 +140,7 @@ if (playing) {
   iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0`;
   iframe.style.display = 'block';
 }
-
+}
 async function nextTrack(){
   if (!isOwner) return;
   const { data }=await db.from('room_videos')
