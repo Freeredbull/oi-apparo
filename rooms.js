@@ -17,7 +17,6 @@ let roomCode  = null;     // 6-char code
 let isOwner   = false;
 let pollTimer = null;
 const userName = `apparo${Math.floor(Math.random() * 1000)}`;
-let currentVideoId = null;
 let currentVideoId = null;       // cache the ID that is already playing
 let ytPlayer       = null;       // handle from YouTube IFrame API
 
