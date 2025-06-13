@@ -52,20 +52,31 @@ function enterRoom(code, pass, owner) {
 async function addTrack() {
   const url = ytInput.value.trim();
   const videoId = extractYouTubeID(url);
-  if (!videoId) return alert('Invalid YouTube link');
+  if (!videoId || !currentRoom) return alert("Invalid YouTube link or not in a room");
 
-  await db.from('room_videos').insert({
-    room_code: currentRoom,             // string
-    youtube_url: url,
-    video_id: videoId,
-    status: 'queued',
-    added_by: userName,
-    start_time: new Date().toISOString()
-  });
+  const insertData = {
+    room_code: currentRoom,                  // 6-char room code like 'RF7DHX'
+    youtube_url: url,                        // Full link
+    video_id: videoId,                       // Only the ID
+    status: 'queued',                        // Optional logic
+    added_by: userName,                      // e.g. 'apparo123'
+    start_time: new Date().toISOString()     // For sync
+    // room_id: you can skip this if you're only using room_code
+  };
+
+  console.log("Inserting video:", insertData); // ✅ debug
+
+  const { error } = await db.from('room_videos').insert(insertData);
+  if (error) {
+    console.error("Error inserting video:", error.message);
+    alert("Failed to add track");
+    return;
+  }
 
   ytInput.value = '';
-  await refreshQueue();
+  refreshQueue();
 }
+
 
 
 async function playNextTrack() {
