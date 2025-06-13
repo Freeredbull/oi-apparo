@@ -53,9 +53,20 @@ async function addTrack() {
   const url = ytInput.value.trim();
   const videoId = extractYouTubeID(url);
   if (!videoId) return alert('Invalid YouTube link');
-  await db.from('room_videos').insert({ room_code: currentRoom, youtube_url: url, video_id: videoId, status: 'queued', added_by: userName });
+
+  await db.from('room_videos').insert({
+    room_code: currentRoom,             // string
+    youtube_url: url,
+    video_id: videoId,
+    status: 'queued',
+    added_by: userName,
+    start_time: new Date().toISOString()
+  });
+
   ytInput.value = '';
+  await refreshQueue();
 }
+
 
 async function playNextTrack() {
   if (!isOwner) return;
@@ -92,9 +103,17 @@ async function refreshQueue() {
 async function sendMessage() {
   const msg = chatInput.value.trim();
   if (!msg) return;
-  await db.from('room_chats').insert({ room_code: currentRoom, sender: userName, message: msg });
+
+  await db.from('room_chats').insert({
+    room_code: currentRoom,      // changed from room_id
+    user_id: userName,
+    message: msg
+  });
+
   chatInput.value = '';
+  await refreshChat();
 }
+
 
 async function refreshChat() {
   const { data } = await db.from('room_chats').select('*').eq('room_code', currentRoom).order('created_at', { ascending: true });
