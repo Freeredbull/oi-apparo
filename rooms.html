@@ -1,71 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OI APPARO — Music Rooms</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎧 OI APPARO • Music Rooms</title>
 
-  <!-- Re-use the global CRT style -->
+  <!-- Re-use your existing Nokia-3310 style sheet -->
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* tiny extras for the room page only */
-    .room-box   { margin-top:24px; border:2px solid #0f0; padding:16px; }
-    .room-box h2{ margin-top:0 }
-    input, button { font-size:14px }
-    iframe      { width:100%; height:170px; border:2px solid #0f0 }
-    ul          { padding-left:0; list-style:none }
-    li          { margin:4px 0 }
-    #owner-hint { color:#0f0; margin-top:6px; font-size:0.8rem }
+    /* Tiny extras so this page looks tidy without touching main CSS */
+    body { max-width: 480px; margin: 0 auto; padding: 20px; }
+    h1  { margin-top: 0.5rem; text-align:center; }
+    input, button { font-family: inherit; }
+    #yt-player { width: 100%; height: 180px; display:none; border:2px solid #0f0; }
+    .hidden { display:none; }
+    ul { padding-left: 0; list-style: none; }
   </style>
 </head>
 <body>
-  <h1>🎧 OI APPARO Rooms</h1>
-  <a href="index.html" style="color:#0f0">⬅️ Back to Wall</a>
 
-  <!-- ─── Room setup ──────────────────────────────── -->
-  <div id="room-setup" class="room-box">
-    <h2>🔑 Join / Create Room</h2>
+  <h1>📻 OI APPARO – Music Rooms</h1>
 
-    <p><strong>Join existing:</strong></p>
-    <input id="room-code-input"       placeholder="CODE (e.g. 3F9XQD)" />
-    <input id="room-password-input"   placeholder="Password" type="password" />
-    <button id="join-room">Enter</button>
+  <!-- ─────────── Room setup box ─────────── -->
+  <div id="room-setup">
+    <h2>Enter / Create a Room</h2>
 
-    <hr style="margin:16px 0"/>
+    <input id="room-code-input"  placeholder="Room Code (6 chars)" style="width:100%; margin-bottom:6px;" />
+    <input id="room-password-input" type="password"
+           placeholder="Password" style="width:100%; margin-bottom:10px;" />
 
-    <p><strong>Create new private room:</strong></p>
-    <button id="create-room">➕ Create Room</button>
+    <div style="display:flex; gap:8px; justify-content:center;">
+      <button id="join-room">🔑 Join Room</button>
+      <button id="create-room">➕ Create Room</button>
+    </div>
 
-    <!-- shown only after creation -->
-    <div id="created-room-info" style="display:none; margin-top:12px;">
-      <p>🆕 Room created! Share:</p>
-      <p>Code: <code id="created-room-code"></code><br>
-         Pass: <code id="created-room-pass"></code></p>
+    <!-- Info shown after creation -->
+    <div id="created-room-info" class="hidden" style="margin-top:14px;">
+      <p><strong>✅ Room created!</strong></p>
+      <p>Code: <code id="created-room-code"></code></p>
+      <p>Password: <code id="created-room-pass"></code></p>
+      <p>Share these with friends.</p>
     </div>
   </div>
 
-  <!-- ─── Room interface ─────────────────────────── -->
-  <div id="room-interface" class="room-box" style="display:none;">
-    <h2>Room <span id="current-room-code"></span></h2>
-    <div id="owner-hint" style="display:none;">You are the owner – you control skipping.</div>
+  <!-- ─────────── Active room interface ─────────── -->
+  <div id="room-interface" class="hidden">
 
-    <!-- queue controls -->
-    <input id="youtube-url" placeholder="YouTube link" style="width:65%" />
-    <button id="add-track">➕ Add Track</button>
-    <button id="next-track">⏭ Next (Owner)</button>
+    <p style="margin-top:0;">
+      <strong>Room:</strong> <span id="current-room-code"></span><br />
+      <small id="owner-hint" class="hidden">You are the DJ (owner) – you control NEXT.</small>
+    </p>
 
-    <ul id="track-list" style="margin-top:12px;"></ul>
-    <iframe id="yt-player" style="display:none;"></iframe>
-
-    <!-- chat -->
-    <h3 style="margin-top:24px;">💬 Chat</h3>
-    <div id="chat-box">
-      <ul id="chat-list" style="max-height:180px; overflow-y:auto; border:1px solid #0f0; padding:8px;"></ul>
-      <input id="chat-input" placeholder="Type message…" style="width:78%" />
-      <button id="send-chat">Send</button>
+    <!-- YouTube link add -->
+    <div style="margin-top:14px;">
+      <input id="youtube-url" placeholder="Paste YouTube link…" style="width: 70%;" />
+      <button id="add-track">➕ Add</button>
+      <button id="next-track">⏭ Next</button>
     </div>
+
+    <!-- Queue -->
+    <h3 style="margin-top:20px; margin-bottom:6px;">🎵 Queue</h3>
+    <ul id="track-list" style="border:2px solid #0f0; padding:6px; min-height:60px;"></ul>
+
+    <!-- Embedded (audio-only) player -->
+    <iframe id="yt-player"
+            src=""
+            allow="autoplay"
+            frameborder="0"
+            allowfullscreen></iframe>
+
+    <!-- Chat -->
+    <h3 style="margin-top:20px; margin-bottom:6px;">💬 Chat</h3>
+    <ul id="chat-list" style="border:2px solid #0f0; padding:6px; min-height:80px; max-height:160px; overflow-y:auto;"></ul>
+
+    <div style="margin-top:6px;">
+      <input id="chat-input" placeholder="Type a message…" style="width:70%;" />
+      <button id="send-chat">➡️ Send</button>
+    </div>
+
+    <!-- Link back to the main site -->
+    <p style="margin-top:24px; text-align:center;">
+      <a href="index.html">🏠 Back to OI APPARO</a>
+    </p>
   </div>
 
+  <!-- Load the room logic -->
   <script type="module" src="rooms.js"></script>
 </body>
 </html>
