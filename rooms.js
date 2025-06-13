@@ -17,6 +17,7 @@ let roomCode  = null;     // 6-char code
 let isOwner   = false;
 let pollTimer = null;
 const userName = `apparo${Math.floor(Math.random() * 1000)}`;
+let currentVideoId = null;
 
 /* ───────── DOM refs ───────── */
 const codeIn      = $('room-code-input');
@@ -109,7 +110,7 @@ async function addTrack () {
   refreshQueue();
 }
 
-async function refreshQueue () {
+async function refreshQueue() {
   if (!roomCode) return;
 
   const { data } = await db.from('room_videos')
@@ -119,36 +120,36 @@ async function refreshQueue () {
 
   if (!data) return;
 
-  /* update visible queue */
   listUL.innerHTML = '';
-  data.forEach(t => {
+  data.forEach((t, i) => {
     const li = document.createElement('li');
     li.textContent = `${t.status === 'playing' ? '▶️' : '🎵'} ${t.video_id} • ${t.added_by}`;
     listUL.appendChild(li);
   });
 
-  /* owner promotes first item if none playing */
   let playing = data.find(t => t.status === 'playing');
 
   if (!playing && isOwner && data.length) {
     const first = data[0];
-    const nowIso = new Date().toISOString();
+    const now = new Date().toISOString();
 
     await db.from('room_videos')
-      .update({ status: 'playing', start_time: nowIso })
+      .update({ status: 'playing', start_time: now })
       .eq('id', first.id);
 
-    playing = { ...first, status: 'playing', start_time: nowIso };
+    playing = { ...first, status: 'playing', start_time: now };
   }
 
-  /* sync playback everywhere */
   if (playing) {
     const offset = playing.start_time
       ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
       : 0;
 
-    iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0`;
-    iframe.style.display = 'block';
+    if (playing.video_id !== currentVideoId) {
+      currentVideoId = playing.video_id;
+      iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0`;
+      iframe.style.display = 'block';
+    }
   }
 }
 
