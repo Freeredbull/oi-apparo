@@ -11,7 +11,21 @@ const rand = (set, n) => Array.from({ length: n }, () => set[Math.floor(Math.ran
 const genCode     = () => rand('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 6);
 const genPassword = () => rand('abcdefghijkmnpqrstuvwxyz23456789', 8);
 const ytId = url   => { const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/); return m ? m[1] : null; };
+/* promote the first queued clip to “playing” */
+async function promoteNext () {
+  const { data: next } = await db
+      .from('room_videos')
+      .select('*')
+      .eq('room_code', roomCode)
+      .order('id', { ascending: true })
+      .limit(1);
 
+  if (next?.length) {
+    await db.from('room_videos')
+      .update({ status: 'playing', start_time: new Date().toISOString() })
+      .eq('id', next[0].id);
+  }
+}
 /* ───────── state ───────── */
 let roomCode  = null;     // 6-char code
 let isOwner   = false;
@@ -128,19 +142,13 @@ async function refreshQueue() {
     listUL.appendChild(li);
   });
 
-  let playing = data.find(t => t.status === 'playing');
+    let playing = data.find(t => t.status === 'playing');
 
   if (!playing && isOwner && data.length) {
-    const first = data[0];
-    const now = new Date().toISOString();
-
-    await db.from('room_videos')
-      .update({ status: 'playing', start_time: now })
-      .eq('id', first.id);
-
-    playing = { ...first, status: 'playing', start_time: now };
+    await promoteNext();
+    playing = { ...data[0], status: 'playing', start_time: new Date().toISOString() };
   }
-
+  
   if (playing) {
   const offset = playing.start_time
     ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
@@ -153,34 +161,39 @@ async function refreshQueue() {
       }?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0&enablejsapi=1`;
   }
 
-  // Add listener once (owner only)
-  if (isOwner && !ytPlayer && window.YT && window.YT.Player) {
-    ytPlayer = new YT.Player(iframe, {
-      events: {
-        onStateChange: (e) => {
-          if (e.data === YT.PlayerState.ENDED) nextTrack();
+    if (!ytPlayer && window.YT && window.YT.Player) {
+      ytPlayer = new YT.Player(iframe, {
+        events: {
+          onStateChange: (e) => {
+            if (window.YT && e.data === YT.PlayerState.ENDED) nextTrack();
+          }
         }
-      }
-    });
-  }
+      });
+    }
+
 
  iframe.style.display = 'block';
 }
 }  
 async function nextTrack () {
-  if (!isOwner) return;
+  if (!isOwner || !roomCode) return;
 
-  const { data } = await db.from('room_videos')
-    .select('*')
-    .eq('room_code', roomCode)
-    .order('id', { ascending: true })
-    .limit(1);
+  const { data: playing } = await db
+      .from('room_videos')
+      .select('*')
+      .eq('room_code', roomCode)
+      .eq('status', 'playing')
+      .single();
 
-  if (!data?.length) return alert('Queue empty');
+  if (playing) {
+    await db.from('room_videos').delete().eq('id', playing.id);
+  }
 
-  await db.from('room_videos').delete().eq('id', data[0].id);
+  await promoteNext();
+  currentVideoId = null;
   refreshQueue();
 }
+
 
 /* ───────── chat logic ───────── */
 async function sendChat () {
@@ -233,6 +246,8 @@ chatInput.addEventListener('keydown', e => {
 });
 
 /* ───────── load YT IFrame API once ───────── */
-const tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-document.head.appendChild(tag);
+if (!window.YT) {
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+}
