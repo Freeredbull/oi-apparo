@@ -47,7 +47,13 @@
       <div id="owner-hint" style="font-size:0.85rem;color:#0f0;margin-bottom:8px;display:none;">
         🛠 You are the room owner.
       </div>
-
+<!-- 💬 Room Chat Section -->
+<div id="chat-box" style="margin-top: 20px;">
+  <h3>💬 Chat</h3>
+  <div id="chat-messages" style="border: 1px solid #ccc; height: 150px; overflow-y: auto; padding: 8px; background: #000; color: #0f0; font-family: monospace;"></div>
+  <input type="text" id="chat-input" placeholder="Send a message..." style="width: 80%;" />
+  <button id="chat-send">📤 Send</button>
+</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <input id="youtube-url" placeholder="YouTube link…" style="flex:1 1 260px;" />
         <button id="add-track">➕ Add</button>
