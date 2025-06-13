@@ -154,16 +154,25 @@ async function nextTrack(){
 }
 
 /* ───────── chat logic ───────── */
-async function sendChat(){
+async function sendChat() {
   const msg = chatInput.value.trim();
   if (!msg || !roomCode) return;
-  await db.from('room_chats').insert({
+
+  const { error } = await db.from('room_chats').insert({
     room_code : roomCode,
     sender    : userName,
     message   : msg
   });
-  chatInput.value='';
+
+  if (error) {
+    console.error('Chat insert error:', error.message);
+    alert('Failed to send message');
+  } else {
+    chatInput.value = '';
+    refreshChat(); // optional: refresh immediately
+  }
 }
+
 
 async function refreshChat(){
   if (!roomCode) return;
