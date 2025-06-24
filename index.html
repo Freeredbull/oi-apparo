@@ -7,33 +7,18 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Marquee -->
   <div id="marquee-container">
     <div id="marquee-text">🔄 Loading top posts...</div>
   </div>
 
+  <!-- Title -->
   <h1>🐎 OI APPARO 🔥</h1>
 
-  <div id="mode-toggle" class="mode-toggle">
-    <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
-    <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
-  </div>
-
-  <div style="margin-top: 20px; text-align: center;">
-    <button id="apparos-near-btn">🔞 APPARES NEAR YOU 🔞</button>
-    <div id="apparos-message" style="margin-top: 10px; display: none; color: #0f0; font-weight: bold;">
-      OI APPARO POU ENA SOU DIKSO APPARES
-    </div>
-  </div>
-
-  <div style="margin-top: 20px; text-align: center;">
-    <a href="rooms.html" class="nokia-button">🎧 Enter Music Rooms</a>
-  </div>
-
-  <div id="online-count" style="font-size: 0.9em; color: green;">🟢 loading...</div>
-
-  <!-- Two-column layout -->
+  <!-- Main container -->
   <div class="container two-column-layout">
-    <!-- Left column: post form -->
+
+    <!-- Left: Post + Controls -->
     <div class="post-column">
       <div class="post-form">
         <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
@@ -41,53 +26,69 @@
         <!-- Image Source Selection -->
         <div class="image-source-options" style="margin-top: 16px;">
           <div>
-            <label>
-              <input type="radio" name="image-source" value="upload" checked>
-              📁 Upload
-            </label>
+            <label><input type="radio" name="image-source" value="upload" checked> 📁 Upload</label>
           </div>
-
           <div id="upload-section" style="margin-top: 8px;">
             <input type="file" id="postImage" accept="image/*" />
           </div>
-
           <div style="margin-top: 12px;">
-            <label>
-              <input type="radio" name="image-source" value="draw">
-              ✏️ Draw
-            </label>
+            <label><input type="radio" name="image-source" value="draw"> ✏️ Draw</label>
           </div>
-
           <div id="draw-launch" style="margin-top: 6px; display: none;">
             <button type="button" id="draw-btn">🎨 Open Draw Pad</button>
           </div>
-
           <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
             ✅ Drawing saved and ready to post.
           </div>
-
           <input type="hidden" id="image-url-input" />
         </div>
 
         <button onclick="submitPost()">📨 Post</button>
       </div>
+
+      <!-- Controls Section -->
+      <div class="left-controls">
+
+        <!-- Mode Toggle -->
+        <div id="mode-toggle" class="mode-toggle">
+          <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
+          <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
+        </div>
+
+        <!-- Online Count -->
+        <div id="online-count-box" class="info-box">
+          <div id="online-count">🟢 loading...</div>
+        </div>
+
+        <!-- Appares Near You -->
+        <div style="margin-top: 12px;">
+          <button id="apparos-near-btn" class="apparos-btn">🔞 APPARES NEAR YOU 🔞</button>
+          <div id="apparos-message" style="margin-top: 10px; display: none; color: #0f0; font-weight: bold;">
+            OI APPARO POU ENA SOU DIKSO APPARES
+          </div>
+        </div>
+
+        <!-- Music Rooms Link -->
+        <div style="margin-top: 12px;">
+          <a href="rooms.html" class="nokia-button">🎧 Enter Music Rooms</a>
+        </div>
+
+      </div>
     </div>
 
-    <!-- Right column: posts feed -->
+    <!-- Right: Feed -->
     <div class="feed-column">
       <div id="posts"></div>
     </div>
   </div>
 
-  <!-- Drawing Pad Modal -->
+  <!-- Drawing Modal -->
   <div id="draw-modal" style="display:none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: black; padding: 10px; border: 2px solid green; z-index: 1000;">
     <div style="margin-bottom: 8px;">
       <button id="select-horse">🐎 Horse</button>
       <button id="select-bat">🦇 Bat</button>
     </div>
-
     <canvas id="draw-canvas" width="300" height="300" style="border:2px solid green; background:black;"></canvas>
-
     <div style="margin-top:10px;">
       <button id="draw-tool">🖌 Draw</button>
       <button id="erase-tool">🧽 Erase</button>
