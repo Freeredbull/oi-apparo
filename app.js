@@ -65,11 +65,12 @@ async function refreshOnlineStatus() {
 window.submitPost = async function () {
   const content = document.getElementById('postContent').value.trim();
   const fileInput = document.getElementById('postImage');
-  const imageChoice = document.querySelector('input[name="image-source"]:checked').value;
+  const imageChoice = document.querySelector('input[name="image-source"]:checked')?.value;
+  const drawUrl = document.getElementById('image-url-input').value.trim();
   let imageUrl = null;
 
   const hasUpload = imageChoice === 'upload' && fileInput.files.length > 0;
-  const hasDrawing = imageChoice === 'draw' && document.getElementById('image-url-input').value;
+  const hasDrawing = imageChoice === 'draw' && !!drawUrl;
 
   if (!content && !hasUpload && !hasDrawing) {
     return alert("Please enter text, upload an image, or draw something!");
@@ -77,24 +78,38 @@ window.submitPost = async function () {
 
   if (hasUpload) {
     const file = fileInput.files[0];
-    const fileName = `${Date.now()}_${file.name}`;
-    await client.storage.from('images').upload(fileName, file);
+    const fileName = `uploads/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await client.storage.from('images').upload(fileName, file);
+
+    if (uploadError) {
+      alert('Image upload failed!');
+      return;
+    }
+
     const { data } = client.storage.from('images').getPublicUrl(fileName);
     imageUrl = data.publicUrl;
   }
 
   if (hasDrawing) {
-    imageUrl = document.getElementById('image-url-input').value;
+    imageUrl = drawUrl;
   }
 
-  await client.from('posts').insert([{ content, image_url: imageUrl }]);
+  const { error: postError } = await client.from('posts').insert([
+    { content, image_url: imageUrl }
+  ]);
 
+  if (postError) {
+    alert("Failed to post!");
+    return;
+  }
+
+  // Reset form
   document.getElementById('postContent').value = '';
   fileInput.value = '';
   document.getElementById('image-url-input').value = '';
   document.getElementById('draw-preview').style.display = 'none';
 
-  loadPosts();
+  loadPosts(false);
 };
 
 window.vote = async function (postId, type) {
