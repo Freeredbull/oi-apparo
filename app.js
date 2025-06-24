@@ -342,3 +342,13 @@ canvas.addEventListener("mouseout", () => {
     });
   };
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('apparos-near-btn');
+  const msg = document.getElementById('apparos-message');
+
+  btn.addEventListener('click', () => {
+    msg.style.display = msg.style.display === 'none' ? 'block' : 'none';
+  });
+});
+
