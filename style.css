@@ -462,15 +462,36 @@ button:focus {
   }
 }
 .image-source-options {
-  display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
 }
 
 .image-source-options input[type="radio"] {
   transform: scale(1.2);
   margin-right: 6px;
+}
+
+.image-source-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.image-source-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+#upload-section,
+#draw-launch,
+#draw-preview {
+  width: 100%;
+}
+
+#draw-preview {
+  font-size: 0.7rem;
 }
 
 .nokia-button {
@@ -594,4 +615,31 @@ html {
 body, h1, .post p {
   overflow-wrap: break-word;
   word-break: break-word;
+}
+.nixtop-active .image-source-options label,
+.nixtop-active input[type="radio"],
+.nixtop-active input[type="file"],
+.nixtop-active button,
+.nixtop-active textarea,
+.nixtop-active .nokia-button {
+  background: #1a0000 !important;
+  color: #ff0033 !important;
+  border-color: #ff0033 !important;
+  box-shadow: 0 0 6px #ff0033 !important;
+}
+
+.nixtop-active .nokia-button:hover {
+  background: #ff0033;
+  color: black;
+}
+.post img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  word-break: break-word;
+}
+
+.feed-column {
+  overflow-wrap: break-word;
+  padding-left: 1rem; /* reduce from 2rem if needed */
 }
