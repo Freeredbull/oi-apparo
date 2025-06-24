@@ -467,22 +467,27 @@ button:focus {
 .image-source-options {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 4px;
+  margin-top: 0.5rem;
 }
 
 .image-source-options label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
+  gap: 6px;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  margin: 2px 0;
 }
+
 
 #upload-section,
 #draw-launch,
 #draw-preview {
   width: 100%;
+  margin-top: 4px;
 }
+
 
 #draw-preview {
   font-size: 0.7rem;
@@ -636,4 +641,18 @@ body, h1, .post p {
 .feed-column {
   overflow-wrap: break-word;
   padding-left: 1rem; /* reduce from 2rem if needed */
+}
+
+.image-source-options button {
+  margin-top: 4px;
+  padding: 6px 10px;
+}
+
+textarea, input[type=file] {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.post-form {
+  padding: 1rem 0.5rem;
 }
