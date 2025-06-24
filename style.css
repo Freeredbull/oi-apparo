@@ -481,5 +481,47 @@ button:focus {
   background-color: lime;
   color: black;
 }
+/* Two-column layout on desktop */
+.two-column-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .two-column-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .post-column {
+    flex: 1;
+    position: sticky;
+    top: 100px;
+    align-self: flex-start;
+  }
+
+  .feed-column {
+    flex: 2;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding-left: 2rem;
+    scrollbar-color: #0f0 #000;
+    scrollbar-width: thin;
+  }
+
+  .feed-column::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .feed-column::-webkit-scrollbar-thumb {
+    background-color: #0f0;
+    border-radius: 10px;
+  }
+
+  .feed-column::-webkit-scrollbar-track {
+    background: #000;
+  }
+}
 
 
