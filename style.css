@@ -262,12 +262,6 @@ button:focus {
   animation: apparo-glow 2s ease-in-out infinite;
 }
 
-@keyframes apparo-glow {
-  0% { box-shadow: 0 0 4px #00ffee; }
-  50% { box-shadow: 0 0 10px #00ffee; }
-  100% { box-shadow: 0 0 4px #00ffee; }
-}
-
 .mode-toggle {
   display: flex;
   justify-content: center;
