@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Marquee -->
+  <!-- Top Marquee -->
   <div id="marquee-container">
     <div id="marquee-text">🔄 Loading top posts...</div>
   </div>
@@ -15,63 +15,71 @@
   <!-- Title -->
   <h1>🐎 OI APPARO 🔥</h1>
 
-  <!-- Main container -->
+  <!-- Main two-column layout -->
   <div class="container two-column-layout">
-
-    <!-- Left column: Controls + Post form -->
+    <!-- LEFT COLUMN -->
     <div class="post-column">
+      <!-- Controls box -->
+      <div class="controls-box">
+        <!-- Mode toggle -->
+        <div id="mode-toggle" class="mode-toggle">
+          <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
+          <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
+        </div>
 
-      <!-- Mode toggle -->
-      <div id="mode-toggle" class="mode-toggle">
-        <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
-        <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
-      </div>
-
-      <!-- Online Count -->
-      <div id="online-count" class="info-box">🟢 loading...</div>
-
-      <!-- Appares Near You -->
-      <div style="margin-top: 10px;">
+        <!-- Apparos Near Button -->
         <button id="apparos-near-btn">🔞 APPARES NEAR YOU 🔞</button>
         <div id="apparos-message" style="margin-top: 10px; display: none; color: #0f0; font-weight: bold;">
           OI APPARO POU ENA SOU DIKSO APPARES
         </div>
-      </div>
 
-      <!-- Music Rooms Link -->
-      <div style="margin-top: 12px;">
+        <!-- Music Rooms Link -->
         <a href="rooms.html" class="nokia-button">🎧 Enter Music Rooms</a>
+
+        <!-- Online Count -->
+        <div id="online-count">🟢 loading...</div>
       </div>
 
-      <!-- Post form -->
-      <div class="post-form" style="margin-top: 20px;">
+      <!-- Post Form -->
+      <div class="post-form">
         <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
 
         <!-- Image Source Selection -->
         <div class="image-source-options" style="margin-top: 16px;">
           <div>
-            <label><input type="radio" name="image-source" value="upload" checked> 📁 Upload</label>
+            <label>
+              <input type="radio" name="image-source" value="upload" checked>
+              📁 Upload
+            </label>
           </div>
           <div id="upload-section" style="margin-top: 8px;">
             <input type="file" id="postImage" accept="image/*" />
           </div>
+
           <div style="margin-top: 12px;">
-            <label><input type="radio" name="image-source" value="draw"> ✏️ Draw</label>
+            <label>
+              <input type="radio" name="image-source" value="draw">
+              ✏️ Draw
+            </label>
           </div>
+
           <div id="draw-launch" style="margin-top: 6px; display: none;">
             <button type="button" id="draw-btn">🎨 Open Draw Pad</button>
           </div>
+
           <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
             ✅ Drawing saved and ready to post.
           </div>
+
           <input type="hidden" id="image-url-input" />
         </div>
 
+        <!-- Submit -->
         <button onclick="submitPost()">📨 Post</button>
       </div>
     </div>
 
-    <!-- Right column: Post feed -->
+    <!-- RIGHT COLUMN -->
     <div class="feed-column">
       <div id="posts"></div>
     </div>
