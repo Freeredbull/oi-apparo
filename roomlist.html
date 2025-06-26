@@ -3,70 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Room List • OI APPARO</title>
+  <title>OI APPARO • Room List</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    .room-grid {
-      display: grid;
-      gap: 1rem;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      margin-top: 2rem;
-    }
-    .room-card {
-      background: #111;
-      border: 2px solid #0f0;
-      padding: 1rem;
-      font-family: 'Press Start 2P', monospace;
-      text-align: center;
-      box-shadow: 0 0 10px #0f0;
-      cursor: pointer;
-    }
-    .room-card:hover {
-      background: #0f0;
-      color: #000;
-    }
-  </style>
 </head>
 <body>
-  <h1>🎶 Active Rooms</h1>
-  <div class="room-grid" id="room-list"></div>
 
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js';
-    const db = createClient(
-      "https://gycoadvqrogvmrdmxntn.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI"
-    );
+<h1>🎛 Active Music Rooms</h1>
+<div id="room-grid" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));width:100%;max-width:900px;margin:auto;"></div>
 
-    const roomList = document.getElementById('room-list');
+<p style="margin-top:2rem;text-align:center;">
+  <a href="rooms.html" class="nokia-button">🎧 Create / Join Room</a>
+</p>
 
-    async function loadRooms() {
-      const { data: rooms } = await db
-        .from('rooms')
-        .select('code, name')
-        .order('created_at', { ascending: false });
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
-      for (const room of rooms) {
-        const { count } = await db
-          .from('room_users')
-          .select('*', { count: 'exact', head: true })
-          .eq('room_code', room.code);
+const SUPABASE_URL = 'https://gycoadvqrogvmrdmxntn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI';
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const grid = document.getElementById('room-grid');
 
-        const div = document.createElement('div');
-        div.className = 'room-card';
-        div.onclick = () => {
-          window.location.href = `rooms.html?code=${room.code}`;
-        };
-        div.innerHTML = `
-          <div><strong>${room.name || 'Unnamed Room'}</strong></div>
-          <div>🧍 ${count || 0} online</div>
-          <div style="font-size: 0.65rem;">${room.code}</div>
-        `;
-        roomList.appendChild(div);
-      }
-    }
+async function loadRooms() {
+  const { data: rooms } = await db.from('rooms').select('*').eq('public', true);
+  if (!rooms) return;
 
-    loadRooms();
-  </script>
+  const roomCodes = rooms.map(r => r.code);
+  const { data: users } = await db
+    .from('room_users')
+    .select('room_code, count:room_code')
+    .in('room_code', roomCodes)
+    .group('room_code');
+
+  const userCounts = {};
+  users?.forEach(u => userCounts[u.room_code] = u.count || 0);
+
+  rooms.sort((a, b) => (userCounts[b.code] || 0) - (userCounts[a.code] || 0));
+
+  rooms.forEach(room => {
+    const box = document.createElement('div');
+    box.className = 'post';
+    box.style.cursor = 'pointer';
+    box.onclick = () => window.location = `rooms.html?code=${room.code}`;
+
+    box.innerHTML = `
+      <p><strong>${room.name || '(Untitled Room)'}</strong></p>
+      <p>🧬 Code: ${room.code}</p>
+      <p>👥 Users: ${userCounts[room.code] || 0}</p>
+    `;
+    grid.appendChild(box);
+  });
+}
+
+loadRooms();
+</script>
+
 </body>
 </html>
