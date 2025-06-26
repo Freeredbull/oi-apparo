@@ -53,10 +53,7 @@ async function showRoom(code) {
   nextBtn.style.display = isOwner ? 'inline-block' : 'none';
 
   try {
-    await db.from('room_users').insert({
-  room_code: roomCode,
-  username: userName
-});
+    await db.from('room_users').insert({ room_code: code, username: `apparo${Math.floor(Math.random() * 1000)}` });
   } catch (e) {
     console.warn('Room user already exists or insert error:', e.message);
   }
@@ -173,9 +170,7 @@ async function loadRoomGrid() {
     div.style = 'border:2px solid #0f0; padding:1rem; background:#000; cursor:pointer;';
     div.innerHTML = `<h3>${room.name || 'Unnamed Room'}</h3><p>Code: <strong>${room.code}</strong></p>`;
     div.onclick = () => {
-      roomCode = room.code;
-      isOwner = false;
-      showRoom(room.code);
+      window.location.href = `rooms.html?code=${room.code}`;
     };
     grid.appendChild(div);
   });
@@ -183,9 +178,31 @@ async function loadRoomGrid() {
 
 async function checkOwnerPresence() {
   const { data } = await db.from('room_users').select('*').eq('room_code', roomCode);
-  const owners = data.filter(u => u.is_owner);
+  const owners = data; // simplified — just check if any users are in the room
   allowAnyoneToSkip = owners.length === 0;
   nextBtn.disabled = !(isOwner || allowAnyoneToSkip);
 }
 
-loadRoomGrid();
+function getRoomCodeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('code')?.toUpperCase() || null;
+}
+
+async function autoJoinFromQuery() {
+  const code = getRoomCodeFromURL();
+  if (!code) return;
+
+  const { data, error } = await db.from('rooms').select('*').eq('code', code).single();
+  if (data) {
+    roomCode = code;
+    isOwner = false;
+    showRoom(roomCode);
+  } else {
+    alert("Room not found.");
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  autoJoinFromQuery();
+  loadRoomGrid();
+});
