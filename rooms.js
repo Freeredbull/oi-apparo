@@ -1,7 +1,8 @@
+// rooms.js (Final)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
 const SUPABASE_URL  = "https://gycoadvqrogvmrdmxntn.supabase.co";
-const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
+const SUPABASE_KEY  = "YOUR_SUPABASE_ANON_KEY_HERE";
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = id => document.getElementById(id);
@@ -20,35 +21,38 @@ const userName = `apparo${Math.floor(Math.random() * 1000)}`;
 let currentVideoId = null;
 let ytPlayer = null;
 
-/* DOM */
-const codeIn      = $('room-code-input');
-const passIn      = $('room-password-input');
-const setupBox    = $('room-setup');
-const roomBox     = $('room-interface');
+const codeIn = $('room-code-input');
+const passIn = $('room-password-input');
+const setupBox = $('room-setup');
+const roomBox = $('room-interface');
 const createdInfo = $('created-room-info');
 const createdCode = $('created-room-code');
 const createdPass = $('created-room-pass');
-const currCode    = $('current-room-code');
-const ownerHint   = $('owner-hint');
+const currCode = $('current-room-code');
+const ownerHint = $('owner-hint');
 
-const ytInput  = $('youtube-url');
-const addBtn   = $('add-track');
-const nextBtn  = $('next-track');
-const listUL   = $('track-list');
-const iframe   = $('yt-player');
+const ytInput = $('youtube-url');
+const addBtn = $('add-track');
+const nextBtn = $('next-track');
+const listUL = $('track-list');
+const iframe = $('yt-player');
 
 const chatInput = $('chat-input');
-const sendBtn   = $('send-chat');
-const chatUL    = $('chat-list');
+const sendBtn = $('send-chat');
+const chatUL = $('chat-list');
 
-/* Room logic */
 async function createRoom () {
   const code = genCode();
   const pass = genPassword();
-  const visibility = document.querySelector('input[name="visibility"]:checked').value;
-  const isPublic = visibility === 'public';
+  const name = $('room-name-input')?.value?.trim() || null;
 
-  const { error } = await db.from('rooms').insert({ code, password: pass, public: isPublic });
+  const { error } = await db.from('rooms').insert({
+    code,
+    password: pass,
+    public: true,
+    name
+  });
+
   if (error) return alert('DB error creating room');
 
   createdCode.textContent = code;
@@ -86,11 +90,15 @@ function enterRoom (code, pass, ownerFlag) {
     refreshChat();
   }, 4000);
 
+  db.from('room_users').insert({ room_code: code, username: userName });
+  window.addEventListener("beforeunload", () => {
+    db.from("room_users").delete().eq("room_code", roomCode).eq("username", userName);
+  });
+
   refreshQueue();
   refreshChat();
 }
 
-/* Video queue */
 async function addTrack () {
   const fullUrl = ytInput.value.trim();
   const videoId = ytId(fullUrl);
@@ -183,7 +191,6 @@ async function nextTrack () {
   refreshQueue();
 }
 
-/* Chat */
 async function sendChat () {
   const msg = chatInput.value.trim();
   if (!msg || !roomCode) return;
@@ -216,7 +223,6 @@ async function refreshChat () {
   chatUL.scrollTop = chatUL.scrollHeight;
 }
 
-/* Events */
 $('create-room').onclick = createRoom;
 $('join-room').onclick = joinRoom;
 addBtn.onclick = addTrack;
