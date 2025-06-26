@@ -52,9 +52,15 @@ async function showRoom(code) {
   document.getElementById('owner-hint').style.display = isOwner ? 'block' : 'none';
   nextBtn.style.display = isOwner ? 'inline-block' : 'none';
 
-  await db.from('room_users').insert({ room_code: code, is_owner: isOwner }).catch(() => {});
+  try {
+    await db.from('room_users').insert({ room_code: code, is_owner: isOwner });
+  } catch (e) {
+    console.warn('Room user already exists or insert error:', e.message);
+  }
+
   loadQueue();
   loadChat();
+
   pollTimer = setInterval(() => {
     loadQueue();
     loadChat();
@@ -63,35 +69,48 @@ async function showRoom(code) {
 }
 
 async function loadQueue() {
-  const { data } = await db.from('tracks').select('*').eq('room_code', roomCode).order('id');
   const list = document.getElementById('track-list');
   list.innerHTML = '';
+
+  const { data, error } = await db
+    .from('tracks')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('id');
+
+  if (error) {
+    console.error('Error loading tracks:', error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) return;
+
   data.forEach(track => {
     const li = document.createElement('li');
     li.textContent = track.url;
     list.appendChild(li);
   });
 
-  if (data.length) {
-    const nextVideoId = extractId(data[0].url);
-    if (ytPlayer) {
-      if (currentVideoId !== nextVideoId) {
-        currentVideoId = nextVideoId;
-        ytPlayer.loadVideoById(currentVideoId);
-      }
-    } else {
+  const nextVideoId = extractId(data[0].url);
+  if (!nextVideoId) return;
+
+  if (ytPlayer) {
+    if (currentVideoId !== nextVideoId) {
       currentVideoId = nextVideoId;
-      ytPlayer = new YT.Player('yt-player', {
-        videoId: currentVideoId,
-        events: {
-          onStateChange: (e) => {
-            if (e.data === YT.PlayerState.ENDED) {
-              if (isOwner || allowAnyoneToSkip) nextTrack();
-            }
+      ytPlayer.loadVideoById(currentVideoId);
+    }
+  } else {
+    currentVideoId = nextVideoId;
+    ytPlayer = new YT.Player('yt-player', {
+      videoId: currentVideoId,
+      events: {
+        onStateChange: (e) => {
+          if (e.data === YT.PlayerState.ENDED) {
+            if (isOwner || allowAnyoneToSkip) nextTrack();
           }
         }
-      });
-    }
+      }
+    });
   }
 }
 
@@ -119,7 +138,8 @@ async function nextTrack() {
 }
 
 async function loadChat() {
-  const { data } = await db.from('messages').select('*').eq('room_code', roomCode).order('created_at');
+  const { data, error } = await db.from('messages').select('*').eq('room_code', roomCode).order('created_at');
+  if (error || !data) return;
   const chat = document.getElementById('chat-list');
   chat.innerHTML = '';
   data.forEach(m => {
