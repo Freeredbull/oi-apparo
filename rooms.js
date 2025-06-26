@@ -8,7 +8,7 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
 const rand = (set, n) => Array.from({ length: n }, () => set[Math.floor(Math.random() * set.length)]).join('');
 const genCode = () => rand('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 6);
-const ytId = url => { const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/); return m ? m[1] : null; };
+const ytId = url => { const m = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/); return m ? m[1] : null; };
 
 let roomCode = null;
 let isOwner = false;
@@ -117,8 +117,9 @@ async function refreshQueue() {
 
   if (playing) {
     const offset = playing.start_time ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000) : 0;
+    console.log("Now playing:", playing.video_id);
 
-    if (!ytPlayer) {
+    if (!ytPlayer && window.YT) {
       ytPlayer = new YT.Player('yt-player', {
         videoId: playing.video_id,
         playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, start: offset },
@@ -129,9 +130,10 @@ async function refreshQueue() {
           }
         }
       });
-    } else {
+    } else if (ytPlayer && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById({ videoId: playing.video_id, startSeconds: offset });
     }
+
     iframe.style.display = 'block';
   }
 }
@@ -195,6 +197,10 @@ if (!window.YT) {
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
 }
+
+window.onYouTubeIframeAPIReady = () => {
+  if (roomCode) refreshQueue();
+};
 
 const params = new URLSearchParams(location.search);
 if (params.get('code')) {
