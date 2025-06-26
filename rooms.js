@@ -1,18 +1,16 @@
-// rooms.js (Final)
+// OI APPARO — Synced Music-Rooms (Final Version)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
-const SUPABASE_URL  = "https://gycoadvqrogvmrdmxntn.supabase.co";
-const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
+const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
+const SUPABASE_KEY = "YeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI"; 
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Utilities
 const $ = id => document.getElementById(id);
-const ytId = url => {
-  const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
-  return m ? m[1] : null;
-};
-
-const genCode     = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-const genPassword = () => Array.from({ length: 8 }, () => 'abcdefghijkmnpqrstuvwxyz23456789'[Math.floor(Math.random() * 32)]).join('');
+const rand = (set, n) => Array.from({ length: n }, () => set[Math.floor(Math.random() * set.length)]).join('');
+const genCode = () => rand('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 6);
+const genPassword = () => rand('abcdefghijkmnpqrstuvwxyz23456789', 8);
+const ytId = url => { const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/); return m ? m[1] : null; };
 
 let roomCode = null;
 let isOwner = false;
@@ -21,8 +19,10 @@ const userName = `apparo${Math.floor(Math.random() * 1000)}`;
 let currentVideoId = null;
 let ytPlayer = null;
 
+// DOM refs
 const codeIn = $('room-code-input');
 const passIn = $('room-password-input');
+const nameIn = $('room-name-input');
 const setupBox = $('room-setup');
 const roomBox = $('room-interface');
 const createdInfo = $('created-room-info');
@@ -41,10 +41,11 @@ const chatInput = $('chat-input');
 const sendBtn = $('send-chat');
 const chatUL = $('chat-list');
 
-async function createRoom () {
+// Create room
+async function createRoom() {
   const code = genCode();
   const pass = genPassword();
-  const name = $('room-name-input')?.value?.trim() || null;
+  const name = nameIn?.value?.trim() || null;
 
   const { error } = await db.from('rooms').insert({
     code,
@@ -52,7 +53,6 @@ async function createRoom () {
     public: true,
     name
   });
-
   if (error) return alert('DB error creating room');
 
   createdCode.textContent = code;
@@ -61,7 +61,7 @@ async function createRoom () {
   enterRoom(code, pass, true);
 }
 
-async function joinRoom () {
+async function joinRoom() {
   const code = codeIn.value.trim().toUpperCase();
   const pass = passIn.value.trim();
   if (!code || !pass) return alert('Enter code & password');
@@ -73,7 +73,7 @@ async function joinRoom () {
   enterRoom(code, pass, false);
 }
 
-function enterRoom (code, pass, ownerFlag) {
+function enterRoom(code, pass, ownerFlag) {
   roomCode = code;
   isOwner = ownerFlag;
 
@@ -90,20 +90,17 @@ function enterRoom (code, pass, ownerFlag) {
     refreshChat();
   }, 4000);
 
-  db.from('room_users').insert({ room_code: code, username: userName });
-  window.addEventListener("beforeunload", () => {
-    db.from("room_users").delete().eq("room_code", roomCode).eq("username", userName);
-  });
-
+  trackPresence();
   refreshQueue();
   refreshChat();
 }
 
-async function addTrack () {
+// Queue
+async function addTrack() {
   const fullUrl = ytInput.value.trim();
   const videoId = ytId(fullUrl);
   if (!videoId) return alert('Invalid YouTube link');
-  if (!roomCode) return;
+  if (!roomCode) return alert('Join or create a room first');
 
   const track = {
     room_code: roomCode,
@@ -121,7 +118,54 @@ async function addTrack () {
   refreshQueue();
 }
 
-async function promoteNext () {
+async function refreshQueue() {
+  if (!roomCode) return;
+
+  const { data } = await db.from('room_videos')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('id', { ascending: true });
+  if (!data) return;
+
+  listUL.innerHTML = '';
+  data.forEach(t => {
+    const li = document.createElement('li');
+    li.textContent = `${t.status === 'playing' ? '▶️' : '🎵'} ${t.video_id} • ${t.added_by}`;
+    listUL.appendChild(li);
+  });
+
+  let playing = data.find(t => t.status === 'playing');
+
+  if (!playing && isOwner && data.length) {
+    await promoteNext();
+    playing = { ...data[0], status: 'playing', start_time: new Date().toISOString() };
+  }
+
+  if (playing) {
+    const offset = playing.start_time
+      ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
+      : 0;
+
+    if (!currentVideoId || playing.video_id !== currentVideoId) {
+      currentVideoId = playing.video_id;
+      iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0&enablejsapi=1`;
+    }
+
+    if (!ytPlayer && window.YT && window.YT.Player) {
+      ytPlayer = new YT.Player(iframe, {
+        events: {
+          onStateChange: (e) => {
+            if (window.YT && e.data === YT.PlayerState.ENDED) nextTrack();
+          }
+        }
+      });
+    }
+
+    iframe.style.display = 'block';
+  }
+}
+
+async function promoteNext() {
   const { data: next } = await db
     .from('room_videos')
     .select('*')
@@ -137,61 +181,22 @@ async function promoteNext () {
   }
 }
 
-async function refreshQueue () {
-  const { data } = await db
-    .from('room_videos')
-    .select('*')
-    .eq('room_code', roomCode)
-    .order('id', { ascending: true });
-
-  if (!data) return;
-
-  listUL.innerHTML = '';
-  data.forEach(t => {
-    const li = document.createElement('li');
-    li.textContent = `${t.status === 'playing' ? '▶️' : '🎵'} ${t.video_id} • ${t.added_by}`;
-    listUL.appendChild(li);
-  });
-
-  let playing = data.find(t => t.status === 'playing');
-  if (!playing && isOwner && data.length) {
-    await promoteNext();
-    return;
-  }
-
-  if (playing) {
-    const offset = playing.start_time
-      ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
-      : 0;
-
-    if (!currentVideoId || playing.video_id !== currentVideoId) {
-      currentVideoId = playing.video_id;
-      iframe.src = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0&enablejsapi=1`;
-      iframe.style.display = 'block';
-    }
-  }
-}
-
-async function nextTrack () {
+async function nextTrack() {
   if (!isOwner || !roomCode) return;
-
-  const { data: playing } = await db
-    .from('room_videos')
+  const { data: playing } = await db.from('room_videos')
     .select('*')
     .eq('room_code', roomCode)
     .eq('status', 'playing')
     .single();
 
-  if (playing) {
-    await db.from('room_videos').delete().eq('id', playing.id);
-    currentVideoId = null;
-  }
-
+  if (playing) await db.from('room_videos').delete().eq('id', playing.id);
   await promoteNext();
+  currentVideoId = null;
   refreshQueue();
 }
 
-async function sendChat () {
+// Chat
+async function sendChat() {
   const msg = chatInput.value.trim();
   if (!msg || !roomCode) return;
 
@@ -205,15 +210,14 @@ async function sendChat () {
   refreshChat();
 }
 
-async function refreshChat () {
-  const { data } = await db
-    .from('room_chats')
+async function refreshChat() {
+  if (!roomCode) return;
+  const { data } = await db.from('room_chats')
     .select('*')
     .eq('room_code', roomCode)
     .order('created_at', { ascending: true });
 
   if (!data) return;
-
   chatUL.innerHTML = '';
   data.forEach(c => {
     const li = document.createElement('li');
@@ -223,17 +227,30 @@ async function refreshChat () {
   chatUL.scrollTop = chatUL.scrollHeight;
 }
 
+// Presence tracking
+async function trackPresence() {
+  await db.from('room_users').insert({ room_code: roomCode, username: userName });
+  window.addEventListener('beforeunload', async () => {
+    await db.from('room_users').delete().eq('room_code', roomCode).eq('username', userName);
+  });
+}
+
+// Events
 $('create-room').onclick = createRoom;
 $('join-room').onclick = joinRoom;
 addBtn.onclick = addTrack;
 nextBtn.onclick = nextTrack;
 sendBtn.onclick = sendChat;
-chatInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendChat();
-});
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
 
 if (!window.YT) {
   const tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
+}
+
+// Auto-join if code/pass in URL
+const params = new URLSearchParams(location.search);
+if (params.get('code') && params.get('pass')) {
+  enterRoom(params.get('code'), params.get('pass'), false);
 }
