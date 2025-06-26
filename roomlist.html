@@ -25,14 +25,6 @@
       background: #0f0;
       color: #000;
     }
-    .room-name {
-      font-size: 0.75rem;
-      margin-bottom: 0.5rem;
-      overflow-wrap: break-word;
-    }
-    .room-code {
-      font-size: 0.65rem;
-    }
   </style>
 </head>
 <body>
@@ -41,7 +33,6 @@
 
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js';
-
     const db = createClient(
       "https://gycoadvqrogvmrdmxntn.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI"
@@ -56,23 +47,20 @@
         .order('created_at', { ascending: false });
 
       for (const room of rooms) {
-        const { data: users } = await db
+        const { count } = await db
           .from('room_users')
-          .select('id', { count: 'exact', head: true })
+          .select('*', { count: 'exact', head: true })
           .eq('room_code', room.code);
 
         const div = document.createElement('div');
         div.className = 'room-card';
         div.onclick = () => {
-          const pass = prompt('Enter password for room ' + room.code);
-          if (pass) {
-            window.location.href = `room.html?code=${room.code}&pass=${encodeURIComponent(pass)}`;
-          }
+          window.location.href = `rooms.html?code=${room.code}`;
         };
         div.innerHTML = `
-          <div class="room-name">${room.name || 'Unnamed Room'}</div>
-          <div class="room-code">${room.code}</div>
-          <div class="room-count">${users?.length || 0} online</div>
+          <div><strong>${room.name || 'Unnamed Room'}</strong></div>
+          <div>🧍 ${count || 0} online</div>
+          <div style="font-size: 0.65rem;">${room.code}</div>
         `;
         roomList.appendChild(div);
       }
