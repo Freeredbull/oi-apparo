@@ -53,7 +53,10 @@ async function showRoom(code) {
   nextBtn.style.display = isOwner ? 'inline-block' : 'none';
 
   try {
-    await db.from('room_users').insert({ room_code: code, is_owner: isOwner });
+    await db.from('room_users').insert({
+  room_code: roomCode,
+  username: userName
+});
   } catch (e) {
     console.warn('Room user already exists or insert error:', e.message);
   }
