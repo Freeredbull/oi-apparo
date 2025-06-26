@@ -15,7 +15,7 @@
 
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js';
-    const db = createClient('https://gycoadvqrogvmrdmxntn.supabase.co', 'YOUR_API_KEY');
+    const db = createClient('https://gycoadvqrogvmrdmxntn.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI');
 
     const grid = document.getElementById('room-grid');
     const { data: rooms } = await db.from('rooms').select('*').eq('public', true).order('created_at', { ascending: false });
