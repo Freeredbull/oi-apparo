@@ -3,51 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OI APPARO • Music Rooms</title>
+  <title>OI APPARO • Music Room</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<h1 style="text-align:center;">🎧 OI APPARO – Music Rooms</h1>
+<!-- ────── Room Setup ────── -->
+<section id="room-setup">
+  <h1>🎧 Create or Join a Music Room</h1>
 
-<!-- ────── Create / Join Section ────── -->
-<section id="room-setup" style="text-align:center;">
-  <h2>Create or Join a Room</h2>
   <div id="created-room-info" style="display:none;margin-bottom:12px;">
-    ✔️ Room created<br>
+    ✔️ Room created<br />
     <small>Code:</small> <strong id="created-room-code"></strong>
   </div>
 
   <input id="room-name-input" placeholder="ROOM NAME (optional)" />
   <input id="room-code-input" placeholder="ROOM CODE" style="text-transform:uppercase" />
+
   <div style="margin-top:10px;">
     <button id="create-room">➕ Create Room</button>
     <button id="join-room">🔑 Join Room</button>
   </div>
-</section>
 
-<!-- ────── Grid of Active Rooms ────── -->
-<section>
-  <h2 style="text-align:center;margin-top:2rem;">Active Rooms</h2>
-  <div id="room-grid" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));width:100%;max-width:900px;margin:1rem auto;"></div>
+  <p style="margin-top:20px;">
+    <a href="roomlist.html" class="nokia-button">🎛 View Active Rooms</a>
+  </p>
 </section>
 
 <!-- ────── Room Interface ────── -->
-<section id="room-interface" style="display:none;max-width:900px;margin:auto;">
+<section id="room-interface" style="display:none;">
   <h2 id="current-room-code"></h2>
-  <p id="owner-hint" style="display:none;">(You are the room owner) – you can skip tracks.</p>
+  <p id="owner-hint" style="display:none;">(You are the room owner)</p>
 
-  <!-- Video Controls -->
   <div>
     <input id="youtube-url" placeholder="YouTube link" style="width:65%;" />
     <button id="add-track">Add</button>
     <button id="next-track">⏭ Next</button>
   </div>
 
-  <!-- Track List -->
   <ul id="track-list" style="margin-top:12px;list-style:none;padding:0;"></ul>
 
-  <!-- YouTube Player -->
+  <!-- YouTube Player Container -->
   <div id="yt-player" style="width:100%;aspect-ratio:16/9;margin-top:12px;"></div>
 
   <!-- Chat Section -->
@@ -59,14 +55,14 @@
   <button id="send-chat">Send</button>
 
   <p style="margin-top:20px;">
-    <a href="#room-setup">← Back to Room Setup</a>
+    <a href="roomlist.html">← Back to Room List</a>
   </p>
 </section>
 
-<!-- YouTube Iframe API (must come before rooms.js logic) -->
+<!-- YouTube Iframe API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 
-<!-- Main Logic -->
+<!-- Room Logic -->
 <script type="module" src="rooms.js"></script>
 </body>
 </html>
