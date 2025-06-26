@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OI APPARO • Room List</title>
+  <title>OI APPARO • Active Rooms</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -17,43 +17,56 @@
 </p>
 
 <script type="module">
-  import { createClient } from 'https://esm.sh/@supabase/supabase-js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-  const SUPABASE_URL = 'https://gycoadvqrogvmrdmxntn.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI'; // Replace with real anon key
-  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(
+  'https://gycoadvqrogvmrdmxntn.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI'
+);
 
-  const grid = document.getElementById('room-grid');
+const grid = document.getElementById('room-grid');
 
-  async function loadRooms() {
-    const { data: rooms, error } = await db.from('rooms').select('*').eq('public', true).order('created_at', { ascending: false });
-    if (error || !rooms) return console.error('Room fetch error:', error);
+async function loadRooms() {
+  const { data: rooms, error } = await supabase
+    .from('rooms')
+    .select('*')
+    .eq('public', true)
+    .order('created_at', { ascending: false });
 
-    const roomsWithUsers = await Promise.all(
-      rooms.map(async room => {
-        const { count } = await db.from('room_users').select('*', { count: 'exact', head: true }).eq('room_code', room.code);
-        return { ...room, userCount: count || 0 };
-      })
-    );
-
-    roomsWithUsers.sort((a, b) => b.userCount - a.userCount);
-
-    roomsWithUsers.forEach(room => {
-      const box = document.createElement('div');
-      box.className = 'post';
-      box.style.cursor = 'pointer';
-      box.onclick = () => window.location.href = `rooms.html?code=${room.code}`;
-
-      box.innerHTML = `
-        <p><strong>${room.name || '(Untitled Room)'}</strong></p>
-        <p>🧬 Code: ${room.code}</p>
-        <p>👥 Users: ${room.userCount}</p>
-      `;
-      grid.appendChild(box);
-    });
+  if (error || !rooms) {
+    console.error('Room fetch error:', error);
+    return;
   }
 
-  loadRooms();
+  const enrichedRooms = await Promise.all(
+    rooms.map(async room => {
+      const { count } = await supabase
+        .from('room_users')
+        .select('*', { count: 'exact', head: true })
+        .eq('room_code', room.code);
+      return { ...room, userCount: count || 0 };
+    })
+  );
+
+  enrichedRooms.sort((a, b) => b.userCount - a.userCount);
+
+  grid.innerHTML = '';
+  enrichedRooms.forEach(room => {
+    const box = document.createElement('div');
+    box.className = 'post';
+    box.style.cursor = 'pointer';
+    box.onclick = () => window.location = `rooms.html?code=${room.code}`;
+
+    box.innerHTML = `
+      <p><strong>${room.name || '(Untitled Room)'}</strong></p>
+      <p>🧬 Code: ${room.code}</p>
+      <p>👥 Users: ${room.userCount}</p>
+    `;
+    grid.appendChild(box);
+  });
+}
+
+loadRooms();
 </script>
 
 </body>
