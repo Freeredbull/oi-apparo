@@ -14,7 +14,7 @@ let roomCode = null;
 let isOwner = false;
 let pollTimer = null;
 const userName = `apparo${Math.floor(Math.random() * 1000)}`;
-let currentVideoId = playing.video_id;
+let currentVideoId = null;
 let ytPlayer = null;
 
 const codeIn = $('room-code-input');
@@ -99,7 +99,12 @@ async function addTrack() {
 async function refreshQueue() {
   if (!roomCode) return;
 
-  const { data } = await db.from('room_videos').select('*').eq('room_code', roomCode).order('id', { ascending: true });
+  const { data } = await db
+    .from('room_videos')
+    .select('*')
+    .eq('room_code', roomCode)
+    .order('id', { ascending: true });
+
   if (!data) return;
 
   listUL.innerHTML = '';
@@ -110,30 +115,39 @@ async function refreshQueue() {
   });
 
   let playing = data.find(t => t.status === 'playing');
+
   if (!playing && isOwner && data.length) {
     await promoteNext();
     playing = { ...data[0], status: 'playing', start_time: new Date().toISOString() };
   }
 
   if (playing) {
-    const offset = playing.start_time ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000) : 0;
-    console.log("Now playing:", playing.video_id);
+    const offset = playing.start_time
+      ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
+      : 0;
 
     if (!ytPlayer && window.YT) {
-  ytPlayer = new YT.Player('yt-player', {
-    videoId: playing.video_id,
-    playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, start: offset },
-    events: {
-      onReady: e => e.target.playVideo(),
-      onStateChange: e => {
-        if (e.data === YT.PlayerState.ENDED && isOwner) nextTrack();
-      }
+      ytPlayer = new YT.Player('yt-player', {
+        videoId: playing.video_id,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          start: offset
+        },
+        events: {
+          onReady: e => e.target.playVideo(),
+          onStateChange: e => {
+            if (e.data === YT.PlayerState.ENDED && isOwner) nextTrack();
+          }
+        }
+      });
+    } else if (ytPlayer && playing.video_id !== currentVideoId) {
+      ytPlayer.loadVideoById({ videoId: playing.video_id, startSeconds: offset });
     }
-  });
-} else if (ytPlayer && playing.video_id !== currentVideoId) {
-  ytPlayer.loadVideoById({ videoId: playing.video_id, startSeconds: offset });
-}
 
+    currentVideoId = playing.video_id;
     iframe.style.display = 'block';
   }
 }
