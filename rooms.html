@@ -8,6 +8,7 @@
 </head>
 <body>
 
+<!-- ────── Create / Join Section ────── -->
 <section id="room-setup">
   <h1>🎧 Create / Join a Music Room</h1>
 
@@ -18,34 +19,51 @@
 
   <input id="room-name-input" placeholder="ROOM NAME (optional)" />
   <input id="room-code-input" placeholder="ROOM CODE" style="text-transform:uppercase" />
+
   <div style="margin-top:10px;">
     <button id="create-room">➕ Create Room</button>
     <button id="join-room">🔑 Join Room</button>
   </div>
+
+  <p style="margin-top:20px;">
+    <a href="roomlist.html" class="nokia-button">🎛 View Active Rooms</a>
+  </p>
 </section>
 
+<!-- ────── Live Room Interface ────── -->
 <section id="room-interface" style="display:none;">
   <h2 id="current-room-code"></h2>
   <p id="owner-hint" style="display:none;">(You are the room owner) – you can skip tracks.</p>
 
-  <input id="youtube-url" placeholder="YouTube link" style="width:65%;" />
-  <button id="add-track">Add</button>
-  <button id="next-track">⏭ Next</button>
+  <div>
+    <input id="youtube-url" placeholder="YouTube link" style="width:65%;" />
+    <button id="add-track">Add</button>
+    <button id="next-track">⏭ Next</button>
+  </div>
 
   <ul id="track-list" style="margin-top:12px;list-style:none;padding:0;"></ul>
 
-  <div id="yt-player" style="width:100%;aspect-ratio:16/9;"></div>
+  <!-- YouTube Player Container (must be a DIV) -->
+  <div id="yt-player" style="width:100%;aspect-ratio:16/9;margin-top:12px;"></div>
 
+  <!-- Chat -->
   <h3 style="margin-top:30px;">🗨️ Chat</h3>
   <div style="border:1px solid #0f0;padding:6px;max-height:200px;overflow:auto;">
     <ul id="chat-list" style="list-style:none;padding:0;margin:0;"></ul>
   </div>
+
   <input id="chat-input" placeholder="Message..." style="width:75%;" />
   <button id="send-chat">Send</button>
 
-  <p style="margin-top:20px;"><a href="roomlist.html">← Back to Room List</a></p>
+  <p style="margin-top:20px;">
+    <a href="roomlist.html">← Back to Room List</a>
+  </p>
 </section>
 
+<!-- YouTube Iframe API (required for player) -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<!-- Your room sync logic -->
 <script type="module" src="rooms.js"></script>
 </body>
 </html>
