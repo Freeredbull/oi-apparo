@@ -6,28 +6,11 @@
   <title>Oi Apparo • Public Music Rooms</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <style>
-    h1 {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    #room-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 1rem;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-  </style>
 </head>
 <body>
 
 <h1>📡 Public Rooms</h1>
-
-<div id="room-grid">
-  <!-- Room cards will be injected here -->
-</div>
+<div id="room-grid"></div>
 
 <p style="text-align:center;margin-top:2rem;">
   <a href="room.html" class="nokia-button">➕ Create or Join a Room</a>
@@ -36,44 +19,58 @@
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
-  const SUPABASE_URL  = "https://gycoadvqrogvmrdmxntn.supabase.co";
-  const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
+  const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
+  const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const grid = document.getElementById("room-grid");
 
-  async function loadRooms() {
-    const { data, error } = await db
-      .from("rooms")
-      .select("*")
-      .eq("public", true)
-      .order("created_at", { ascending: false });
-
-    if (error || !data) {
-      grid.innerHTML = "<p>Error loading rooms.</p>";
-      return;
-    }
-
-    if (data.length === 0) {
-      grid.innerHTML = "<p style='text-align:center;'>No rooms available right now. Be the first to create one!</p>";
-      return;
-    }
-
-    for (const room of data) {
-      const card = document.createElement("div");
-      card.className = "room-card";
-      card.innerHTML = `
-        <strong>${room.code}</strong><br/>
-        <small>Created: ${new Date(room.created_at).toLocaleDateString()}</small>
-      `;
-      card.onclick = () => {
-        window.location.href = `room.html?code=${room.code}`;
-      };
-      grid.appendChild(card);
+  async function cleanupOldRooms() {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: oldRooms } = await db.from("rooms").select("code").lt("created_at", cutoff);
+    for (const room of oldRooms) {
+      await db.from("room_users").delete().eq("room_code", room.code);
+      await db.from("room_videos").delete().eq("room_code", room.code);
+      await db.from("room_chats").delete().eq("room_code", room.code);
+      await db.from("rooms").delete().eq("code", room.code);
     }
   }
 
-  loadRooms();
+  async function loadRooms() {
+    const { data: rooms } = await db
+      .from("rooms")
+      .select("code, name, password, created_at")
+      .eq("public", true);
+
+    const { data: users } = await db
+      .from("room_users")
+      .select("room_code, count:room_code")
+      .group("room_code");
+
+    const userCounts = {};
+    users?.forEach(u => userCounts[u.room_code] = u.count);
+
+    rooms.sort((a, b) => (userCounts[b.code] || 0) - (userCounts[a.code] || 0));
+
+    grid.innerHTML = '';
+    rooms.forEach(room => {
+      const count = userCounts[room.code] || 0;
+      const card = document.createElement("div");
+      card.className = "room-card";
+      card.innerHTML = `
+        <strong>${room.name || "Untitled Room"}</strong><br/>
+        <small>Code: ${room.code}</small><br/>
+        <small>👥 ${count} listener(s)</small>
+      `;
+      card.onclick = () => {
+        window.location.href = `room.html?code=${room.code}&pass=${room.password}`;
+      };
+      grid.appendChild(card);
+    });
+  }
+
+  await cleanupOldRooms();
+  await loadRooms();
 </script>
 
 </body>
