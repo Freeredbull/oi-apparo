@@ -120,19 +120,19 @@ async function refreshQueue() {
     console.log("Now playing:", playing.video_id);
 
     if (!ytPlayer && window.YT) {
-      ytPlayer = new YT.Player('yt-player', {
-        videoId: playing.video_id,
-        playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, start: offset },
-        events: {
-          onReady: e => e.target.playVideo(),
-          onStateChange: e => {
-            if (e.data === YT.PlayerState.ENDED && isOwner) nextTrack();
-          }
-        }
-      });
-    } else if (ytPlayer && ytPlayer.loadVideoById) {
-      ytPlayer.loadVideoById({ videoId: playing.video_id, startSeconds: offset });
+  ytPlayer = new YT.Player('yt-player', {
+    videoId: playing.video_id,
+    playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, start: offset },
+    events: {
+      onReady: e => e.target.playVideo(),
+      onStateChange: e => {
+        if (e.data === YT.PlayerState.ENDED && isOwner) nextTrack();
+      }
     }
+  });
+} else if (ytPlayer && playing.video_id !== currentVideoId) {
+  ytPlayer.loadVideoById({ videoId: playing.video_id, startSeconds: offset });
+}
 
     iframe.style.display = 'block';
   }
