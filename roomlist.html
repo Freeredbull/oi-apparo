@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oi Apparo • Public Music Rooms</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    #room-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📡 Public Rooms</h1>
+
+<div id="room-grid">
+  <!-- Room cards will be injected here -->
+</div>
+
+<p style="text-align:center;margin-top:2rem;">
+  <a href="room.html" class="nokia-button">➕ Create or Join a Room</a>
+</p>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js';
+
+  const SUPABASE_URL  = "https://gycoadvqrogvmrdmxntn.supabase.co";
+  const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const grid = document.getElementById("room-grid");
+
+  async function loadRooms() {
+    const { data, error } = await db
+      .from("rooms")
+      .select("*")
+      .eq("public", true)
+      .order("created_at", { ascending: false });
+
+    if (error || !data) {
+      grid.innerHTML = "<p>Error loading rooms.</p>";
+      return;
+    }
+
+    if (data.length === 0) {
+      grid.innerHTML = "<p style='text-align:center;'>No rooms available right now. Be the first to create one!</p>";
+      return;
+    }
+
+    for (const room of data) {
+      const card = document.createElement("div");
+      card.className = "room-card";
+      card.innerHTML = `
+        <strong>${room.code}</strong><br/>
+        <small>Created: ${new Date(room.created_at).toLocaleDateString()}</small>
+      `;
+      card.onclick = () => {
+        window.location.href = `room.html?code=${room.code}`;
+      };
+      grid.appendChild(card);
+    }
+  }
+
+  loadRooms();
+</script>
+
+</body>
+</html>
