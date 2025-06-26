@@ -14,7 +14,7 @@ let roomCode = null;
 let isOwner = false;
 let pollTimer = null;
 const userName = `apparo${Math.floor(Math.random() * 1000)}`;
-let currentVideoId = null;
+let currentVideoId = playing.video_id;
 let ytPlayer = null;
 
 const codeIn = $('room-code-input');
