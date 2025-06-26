@@ -1,4 +1,4 @@
-// OI APPARO — Public Music-Rooms (No passwords)
+// OI APPARO — Synced Music-Rooms (Final Version)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
 const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
@@ -17,21 +17,19 @@ const userName = `apparo${Math.floor(Math.random() * 1000)}`;
 let currentVideoId = null;
 let ytPlayer = null;
 
-const nameIn = $('room-name-input');
 const codeIn = $('room-code-input');
+const nameIn = $('room-name-input');
 const setupBox = $('room-setup');
 const roomBox = $('room-interface');
 const createdInfo = $('created-room-info');
 const createdCode = $('created-room-code');
 const currCode = $('current-room-code');
 const ownerHint = $('owner-hint');
-
 const ytInput = $('youtube-url');
 const addBtn = $('add-track');
 const nextBtn = $('next-track');
 const listUL = $('track-list');
 const iframe = $('yt-player');
-
 const chatInput = $('chat-input');
 const sendBtn = $('send-chat');
 const chatUL = $('chat-list');
@@ -39,8 +37,7 @@ const chatUL = $('chat-list');
 async function createRoom() {
   const code = genCode();
   const name = nameIn?.value?.trim() || null;
-
-  const { error } = await db.from('rooms').insert({ code, name, public: true });
+  const { error } = await db.from('rooms').insert({ code, public: true, name });
   if (error) return alert('DB error creating room');
 
   createdCode.textContent = code;
@@ -50,7 +47,7 @@ async function createRoom() {
 
 async function joinRoom() {
   const code = codeIn.value.trim().toUpperCase();
-  if (!code) return alert('Enter a room code');
+  if (!code) return alert('Enter code');
 
   const { data, error } = await db.from('rooms').select('*').eq('code', code).single();
   if (error || !data) return alert('Room not found');
@@ -62,7 +59,7 @@ function enterRoom(code, ownerFlag) {
   roomCode = code;
   isOwner = ownerFlag;
 
-  currCode.textContent = `${code} — you are ${userName}`;
+  currCode.textContent = `${code} – you are ${userName}`;
   ownerHint.style.display = ownerFlag ? 'block' : 'none';
   nextBtn.disabled = !ownerFlag;
 
@@ -83,18 +80,18 @@ function enterRoom(code, ownerFlag) {
 async function addTrack() {
   const fullUrl = ytInput.value.trim();
   const videoId = ytId(fullUrl);
-  if (!videoId) return alert('Invalid YouTube link');
-  if (!roomCode) return alert('Join or create a room first');
+  if (!videoId || !roomCode) return alert('Invalid YouTube link or room not joined');
 
-  await db.from('room_videos').insert({
+  const track = {
     room_code: roomCode,
     youtube_url: fullUrl,
     video_id: videoId,
     status: 'queued',
     added_by: userName,
     start_time: null
-  });
+  };
 
+  await db.from('room_videos').insert(track);
   ytInput.value = '';
   refreshQueue();
 }
@@ -102,10 +99,7 @@ async function addTrack() {
 async function refreshQueue() {
   if (!roomCode) return;
 
-  const { data } = await db.from('room_videos')
-    .select('*')
-    .eq('room_code', roomCode)
-    .order('id', { ascending: true });
+  const { data } = await db.from('room_videos').select('*').eq('room_code', roomCode).order('id', { ascending: true });
   if (!data) return;
 
   listUL.innerHTML = '';
@@ -116,60 +110,42 @@ async function refreshQueue() {
   });
 
   let playing = data.find(t => t.status === 'playing');
-
   if (!playing && isOwner && data.length) {
     await promoteNext();
     playing = { ...data[0], status: 'playing', start_time: new Date().toISOString() };
   }
 
   if (playing) {
-    const offset = playing.start_time
-      ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000)
-      : 0;
+    const offset = playing.start_time ? Math.floor((Date.now() - new Date(playing.start_time).getTime()) / 1000) : 0;
 
-    if (!currentVideoId || playing.video_id !== currentVideoId) {
-      currentVideoId = playing.video_id;
-      iframe.src = `https://www.youtube.com/embed/${playing.video_id}?autoplay=1&start=${offset}&mute=0&controls=0&modestbranding=1&rel=0&enablejsapi=1`;
-    }
-
-    if (!ytPlayer && window.YT && window.YT.Player) {
-      ytPlayer = new YT.Player(iframe, {
+    if (!ytPlayer) {
+      ytPlayer = new YT.Player('yt-player', {
+        videoId: playing.video_id,
+        playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, start: offset },
         events: {
-          onStateChange: (e) => {
-            if (window.YT && e.data === YT.PlayerState.ENDED) nextTrack();
+          onReady: e => e.target.playVideo(),
+          onStateChange: e => {
+            if (e.data === YT.PlayerState.ENDED && isOwner) nextTrack();
           }
         }
       });
+    } else {
+      ytPlayer.loadVideoById({ videoId: playing.video_id, startSeconds: offset });
     }
-
     iframe.style.display = 'block';
   }
 }
 
 async function promoteNext() {
-  const { data: next } = await db
-    .from('room_videos')
-    .select('*')
-    .eq('room_code', roomCode)
-    .eq('status', 'queued')
-    .order('id', { ascending: true })
-    .limit(1);
-
+  const { data: next } = await db.from('room_videos').select('*').eq('room_code', roomCode).eq('status', 'queued').order('id', { ascending: true }).limit(1);
   if (next?.length) {
-    await db.from('room_videos')
-      .update({ status: 'playing', start_time: new Date().toISOString() })
-      .eq('id', next[0].id);
+    await db.from('room_videos').update({ status: 'playing', start_time: new Date().toISOString() }).eq('id', next[0].id);
   }
 }
 
 async function nextTrack() {
   if (!isOwner || !roomCode) return;
-  const { data: playing } = await db.from('room_videos')
-    .select('*')
-    .eq('room_code', roomCode)
-    .eq('status', 'playing')
-    .single();
-
+  const { data: playing } = await db.from('room_videos').select('*').eq('room_code', roomCode).eq('status', 'playing').single();
   if (playing) await db.from('room_videos').delete().eq('id', playing.id);
   await promoteNext();
   currentVideoId = null;
@@ -180,22 +156,16 @@ async function sendChat() {
   const msg = chatInput.value.trim();
   if (!msg || !roomCode) return;
 
-  await db.from('room_chats').insert({
-    room_code: roomCode,
-    sender: userName,
-    message: msg
-  });
-
+  await db.from('room_chats').insert({ room_code: roomCode, sender: userName, message: msg });
   chatInput.value = '';
   refreshChat();
 }
 
 async function refreshChat() {
   if (!roomCode) return;
-  const { data } = await db.from('room_chats')
-    .select('*')
-    .eq('room_code', roomCode)
-    .order('created_at', { ascending: true });
+
+  const { data } = await db.from('room_chats').select('*').eq('room_code', roomCode).order('created_at', { ascending: true });
+  if (!data) return;
 
   chatUL.innerHTML = '';
   data.forEach(c => {
@@ -213,7 +183,6 @@ async function trackPresence() {
   });
 }
 
-// Events
 $('create-room').onclick = createRoom;
 $('join-room').onclick = joinRoom;
 addBtn.onclick = addTrack;
