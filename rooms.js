@@ -1,15 +1,13 @@
-// OI APPARO — Synced Music-Rooms (Final Version)
+// OI APPARO — Public Music-Rooms (No passwords)
 import { createClient } from 'https://esm.sh/@supabase/supabase-js';
 
 const SUPABASE_URL = "https://gycoadvqrogvmrdmxntn.supabase.co";
-const SUPABASE_KEY = "YeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI"; 
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Y29hZHZxcm9ndm1yZG14bnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMDc2MzcsImV4cCI6MjA2NDc4MzYzN30.hF_0bAwBs1kcCxuSL8UypC2SomDtuCXSVudXSDhwOpI";
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Utilities
 const $ = id => document.getElementById(id);
 const rand = (set, n) => Array.from({ length: n }, () => set[Math.floor(Math.random() * set.length)]).join('');
 const genCode = () => rand('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 6);
-const genPassword = () => rand('abcdefghijkmnpqrstuvwxyz23456789', 8);
 const ytId = url => { const m = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/); return m ? m[1] : null; };
 
 let roomCode = null;
@@ -19,15 +17,12 @@ const userName = `apparo${Math.floor(Math.random() * 1000)}`;
 let currentVideoId = null;
 let ytPlayer = null;
 
-// DOM refs
-const codeIn = $('room-code-input');
-const passIn = $('room-password-input');
 const nameIn = $('room-name-input');
+const codeIn = $('room-code-input');
 const setupBox = $('room-setup');
 const roomBox = $('room-interface');
 const createdInfo = $('created-room-info');
 const createdCode = $('created-room-code');
-const createdPass = $('created-room-pass');
 const currCode = $('current-room-code');
 const ownerHint = $('owner-hint');
 
@@ -41,43 +36,33 @@ const chatInput = $('chat-input');
 const sendBtn = $('send-chat');
 const chatUL = $('chat-list');
 
-// Create room
 async function createRoom() {
   const code = genCode();
-  const pass = genPassword();
   const name = nameIn?.value?.trim() || null;
 
-  const { error } = await db.from('rooms').insert({
-    code,
-    password: pass,
-    public: true,
-    name
-  });
+  const { error } = await db.from('rooms').insert({ code, name, public: true });
   if (error) return alert('DB error creating room');
 
   createdCode.textContent = code;
-  createdPass.textContent = pass;
   createdInfo.style.display = 'block';
-  enterRoom(code, pass, true);
+  enterRoom(code, true);
 }
 
 async function joinRoom() {
   const code = codeIn.value.trim().toUpperCase();
-  const pass = passIn.value.trim();
-  if (!code || !pass) return alert('Enter code & password');
+  if (!code) return alert('Enter a room code');
 
   const { data, error } = await db.from('rooms').select('*').eq('code', code).single();
   if (error || !data) return alert('Room not found');
-  if (data.password !== pass) return alert('Wrong password');
 
-  enterRoom(code, pass, false);
+  enterRoom(code, false);
 }
 
-function enterRoom(code, pass, ownerFlag) {
+function enterRoom(code, ownerFlag) {
   roomCode = code;
   isOwner = ownerFlag;
 
-  currCode.textContent = `${code} (🔐 ${pass}) – you are ${userName}`;
+  currCode.textContent = `${code} — you are ${userName}`;
   ownerHint.style.display = ownerFlag ? 'block' : 'none';
   nextBtn.disabled = !ownerFlag;
 
@@ -95,24 +80,20 @@ function enterRoom(code, pass, ownerFlag) {
   refreshChat();
 }
 
-// Queue
 async function addTrack() {
   const fullUrl = ytInput.value.trim();
   const videoId = ytId(fullUrl);
   if (!videoId) return alert('Invalid YouTube link');
   if (!roomCode) return alert('Join or create a room first');
 
-  const track = {
+  await db.from('room_videos').insert({
     room_code: roomCode,
     youtube_url: fullUrl,
     video_id: videoId,
     status: 'queued',
     added_by: userName,
     start_time: null
-  };
-
-  const { error } = await db.from('room_videos').insert(track);
-  if (error) return alert('Could not add video');
+  });
 
   ytInput.value = '';
   refreshQueue();
@@ -195,7 +176,6 @@ async function nextTrack() {
   refreshQueue();
 }
 
-// Chat
 async function sendChat() {
   const msg = chatInput.value.trim();
   if (!msg || !roomCode) return;
@@ -217,7 +197,6 @@ async function refreshChat() {
     .eq('room_code', roomCode)
     .order('created_at', { ascending: true });
 
-  if (!data) return;
   chatUL.innerHTML = '';
   data.forEach(c => {
     const li = document.createElement('li');
@@ -227,7 +206,6 @@ async function refreshChat() {
   chatUL.scrollTop = chatUL.scrollHeight;
 }
 
-// Presence tracking
 async function trackPresence() {
   await db.from('room_users').insert({ room_code: roomCode, username: userName });
   window.addEventListener('beforeunload', async () => {
@@ -249,8 +227,7 @@ if (!window.YT) {
   document.head.appendChild(tag);
 }
 
-// Auto-join if code/pass in URL
 const params = new URLSearchParams(location.search);
-if (params.get('code') && params.get('pass')) {
-  enterRoom(params.get('code'), params.get('pass'), false);
+if (params.get('code')) {
+  enterRoom(params.get('code'), false);
 }
