@@ -656,3 +656,40 @@ textarea, input[type=file] {
 .post-form {
   padding: 1rem 0.5rem;
 }
+
+.visibility-toggle {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.visibility-toggle label {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+#room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+}
+
+.room-card {
+  background: #000;
+  border: 2px solid #0f0;
+  color: #0f0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 0 8px #0f0;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.room-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px #0f0;
+}
