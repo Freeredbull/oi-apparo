@@ -1,15 +1,15 @@
+<!-- room.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>OI APPARO • Music Rooms</title>
+  <title>OI APPARO • Music Room</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- ────── setup panel ────── -->
 <section id="room-setup">
   <h1>🎧 Create / Join a Music Room</h1>
 
@@ -19,20 +19,9 @@
     <small>Password:</small> <strong id="created-room-pass"></strong>
   </div>
 
-  <input id="room-code-input"  placeholder="ROOM CODE" style="text-transform:uppercase;" />
-  <input id="room-password-input" placeholder="PASSWORD" type="password" />
-
-  <!-- Public/Private Toggle -->
-  <div class="visibility-toggle">
-    <label>
-      <input type="radio" name="visibility" value="public" checked />
-      🌐 Public
-    </label>
-    <label>
-      <input type="radio" name="visibility" value="private" />
-      🔒 Private
-    </label>
-  </div>
+  <input id="room-name-input" placeholder="ROOM NAME (optional)" />
+  <input id="room-code-input" placeholder="ROOM CODE" style="text-transform:uppercase" />
+  <input id="room-password-input" type="password" style="display:none" />
 
   <div style="margin-top:10px;">
     <button id="create-room">➕ Create Room</button>
@@ -40,21 +29,17 @@
   </div>
 </section>
 
-<!-- ────── live room ────── -->
 <section id="room-interface" style="display:none;">
   <h2 id="current-room-code"></h2>
   <p id="owner-hint" style="display:none;">(You are the room owner) – you can skip tracks.</p>
 
-  <!-- queue -->
   <input id="youtube-url" placeholder="YouTube link" style="width:65%;" />
   <button id="add-track">Add</button>
   <button id="next-track">⏭ Next</button>
 
   <ul id="track-list" style="margin-top:12px;list-style:none;padding:0;"></ul>
-
   <iframe id="yt-player" style="width:100%;aspect-ratio:16/9;display:none;border:none;"></iframe>
 
-  <!-- chat -->
   <h3 style="margin-top:30px;">🗨️ Chat</h3>
   <div style="border:1px solid #0f0;padding:6px;max-height:200px;overflow:auto;">
     <ul id="chat-list" style="list-style:none;padding:0;margin:0;"></ul>
@@ -62,15 +47,18 @@
   <input id="chat-input" placeholder="Message..." style="width:75%;" />
   <button id="send-chat">Send</button>
 
-  <p style="margin-top:20px;"><a href="index.html">← Back to OI APPARO</a></p>
+  <p style="margin-top:20px;"><a href="roomlist.html">← Back to Room List</a></p>
 </section>
 
 <script type="module" src="rooms.js"></script>
 <script>
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
-  if (code) {
-    document.getElementById("room-code-input").value = code.toUpperCase();
+  const pass = params.get("pass");
+  if (code && pass) {
+    document.getElementById("room-code-input").value = code;
+    document.getElementById("room-password-input").value = pass;
+    setTimeout(() => document.getElementById("join-room").click(), 200);
   }
 </script>
 </body>
