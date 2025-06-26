@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<!-- ────── Room Setup ────── -->
+<!-- Room Setup Section -->
 <section id="room-setup">
   <h1>🎧 Create or Join a Music Room</h1>
 
@@ -30,7 +30,7 @@
   </p>
 </section>
 
-<!-- ────── Room Interface ────── -->
+<!-- Room Interface Section -->
 <section id="room-interface" style="display:none;">
   <h2 id="current-room-code"></h2>
   <p id="owner-hint" style="display:none;">(You are the room owner)</p>
@@ -43,10 +43,9 @@
 
   <ul id="track-list" style="margin-top:12px;list-style:none;padding:0;"></ul>
 
-  <!-- YouTube Player Container -->
+  <!-- YouTube Player -->
   <div id="yt-player" style="width:100%;aspect-ratio:16/9;margin-top:12px;"></div>
 
-  <!-- Chat Section -->
   <h3 style="margin-top:30px;">🗨️ Chat</h3>
   <div style="border:1px solid #0f0;padding:6px;max-height:200px;overflow:auto;">
     <ul id="chat-list" style="list-style:none;padding:0;margin:0;"></ul>
@@ -59,10 +58,7 @@
   </p>
 </section>
 
-<!-- YouTube Iframe API -->
 <script src="https://www.youtube.com/iframe_api"></script>
-
-<!-- Room Logic -->
 <script type="module" src="rooms.js"></script>
 </body>
 </html>
