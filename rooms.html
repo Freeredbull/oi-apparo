@@ -8,12 +8,12 @@
 </head>
 <body>
 
-<!-- Room Setup Section -->
+<!-- Room Setup -->
 <section id="room-setup">
-  <h1>🎧 Create or Join a Music Room</h1>
+  <h1>🎧 Create / Join a Music Room</h1>
 
   <div id="created-room-info" style="display:none;margin-bottom:12px;">
-    ✔️ Room created<br />
+    ✔️ Room created<br>
     <small>Code:</small> <strong id="created-room-code"></strong>
   </div>
 
@@ -30,10 +30,10 @@
   </p>
 </section>
 
-<!-- Room Interface Section -->
+<!-- Live Room Interface -->
 <section id="room-interface" style="display:none;">
   <h2 id="current-room-code"></h2>
-  <p id="owner-hint" style="display:none;">(You are the room owner)</p>
+  <p id="owner-hint" style="display:none;">(You are the room owner) – you can skip tracks.</p>
 
   <div>
     <input id="youtube-url" placeholder="YouTube link" style="width:65%;" />
@@ -41,15 +41,18 @@
     <button id="next-track">⏭ Next</button>
   </div>
 
+  <!-- Track List -->
   <ul id="track-list" style="margin-top:12px;list-style:none;padding:0;"></ul>
 
   <!-- YouTube Player -->
   <div id="yt-player" style="width:100%;aspect-ratio:16/9;margin-top:12px;"></div>
 
+  <!-- Chat -->
   <h3 style="margin-top:30px;">🗨️ Chat</h3>
   <div style="border:1px solid #0f0;padding:6px;max-height:200px;overflow:auto;">
     <ul id="chat-list" style="list-style:none;padding:0;margin:0;"></ul>
   </div>
+
   <input id="chat-input" placeholder="Message..." style="width:75%;" />
   <button id="send-chat">Send</button>
 
@@ -58,7 +61,10 @@
   </p>
 </section>
 
+<!-- YouTube Iframe API -->
 <script src="https://www.youtube.com/iframe_api"></script>
+
+<!-- Main Logic -->
 <script type="module" src="rooms.js"></script>
 </body>
 </html>
