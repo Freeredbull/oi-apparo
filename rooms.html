@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OI APPARO • Music Rooms</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -18,8 +19,21 @@
     <small>Password:</small> <strong id="created-room-pass"></strong>
   </div>
 
-  <input id="room-code-input"  placeholder="ROOM CODE"     style="text-transform:uppercase" />
+  <input id="room-code-input"  placeholder="ROOM CODE" style="text-transform:uppercase;" />
   <input id="room-password-input" placeholder="PASSWORD" type="password" />
+
+  <!-- Public/Private Toggle -->
+  <div class="visibility-toggle">
+    <label>
+      <input type="radio" name="visibility" value="public" checked />
+      🌐 Public
+    </label>
+    <label>
+      <input type="radio" name="visibility" value="private" />
+      🔒 Private
+    </label>
+  </div>
+
   <div style="margin-top:10px;">
     <button id="create-room">➕ Create Room</button>
     <button id="join-room">🔑 Join Room</button>
@@ -51,6 +65,13 @@
   <p style="margin-top:20px;"><a href="index.html">← Back to OI APPARO</a></p>
 </section>
 
-<script type="module" src="rooms.js"></script>
+<script type="module" src="room.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  if (code) {
+    document.getElementById("room-code-input").value = code.toUpperCase();
+  }
+</script>
 </body>
 </html>
