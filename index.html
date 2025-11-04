@@ -19,6 +19,20 @@
   <div class="container two-column-layout">
     <!-- LEFT COLUMN -->
     <div class="post-column">
+      <div class="auth-card">
+        <h2>🔐 Sign In</h2>
+        <div id="auth-status" class="auth-status">Sign in to post and comment.</div>
+        <form id="auth-form">
+          <input type="email" id="auth-email" class="auth-input" placeholder="Email" required>
+          <input type="password" id="auth-password" class="auth-input" placeholder="Password" required>
+          <div class="auth-buttons">
+            <button type="submit">🔓 Sign In</button>
+            <button type="button" id="auth-signup-btn">✨ Sign Up</button>
+          </div>
+        </form>
+        <button type="button" id="auth-signout" style="display:none;">🚪 Sign Out</button>
+      </div>
+
       <!-- Controls box -->
       <div class="controls-box">
         <!-- Mode toggle -->

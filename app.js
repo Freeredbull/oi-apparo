@@ -12,6 +12,14 @@ let postPage = 0;
 let loadingPosts = false;
 let allPostsLoaded = false;
 const postsPerPage = 15;
+let currentUser = null;
+let currentUsername = null;
+
+let authForm;
+let authEmailInput;
+let authPasswordInput;
+let authStatusLabel;
+let signOutButton;
 
 const btnApparos = document.getElementById('mode-apparos');
 const btnNixtop = document.getElementById('mode-nixtop');
@@ -25,7 +33,7 @@ btnApparos.addEventListener('click', () => {
   postPage = 0;
   allPostsLoaded = false;
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  loadPosts(false);
+  loadPosts({ reset: true });
 });
 
 btnNixtop.addEventListener('click', () => {
@@ -39,7 +47,7 @@ btnNixtop.addEventListener('click', () => {
   postPage = 0;
   allPostsLoaded = false;
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  loadPosts(false);
+  loadPosts({ reset: true });
 });
 
 let sessionId = localStorage.getItem('online_user_id');
@@ -62,7 +70,163 @@ async function refreshOnlineStatus() {
   }
 }
 
+function requireAuth() {
+  if (!currentUser || !currentUsername) {
+    alert('Please sign in to share posts and comments.');
+    return false;
+  }
+  return true;
+}
+
+function formatRelativeTime(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const diff = Date.now() - date.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (diff < minute) return 'just now';
+  if (diff < hour) return `${Math.floor(diff / minute)}m ago`;
+  if (diff < day) return `${Math.floor(diff / hour)}h ago`;
+  if (diff < 7 * day) return `${Math.floor(diff / day)}d ago`;
+  return date.toLocaleDateString();
+}
+
+function extractImagePath(url) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const marker = '/storage/v1/object/public/images/';
+    const idx = parsed.pathname.indexOf(marker);
+    if (idx === -1) return null;
+    return parsed.pathname.substring(idx + marker.length);
+  } catch (err) {
+    return null;
+  }
+}
+
+function generateUsernameSeed() {
+  const random = Math.floor(100 + Math.random() * 900);
+  return `Apparos${random}`;
+}
+
+async function ensureProfile(user) {
+  try {
+    const { data, error } = await client
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Profile lookup failed:', error.message);
+      return null;
+    }
+
+    if (data?.username) {
+      return data.username;
+    }
+
+    let username = generateUsernameSeed();
+    for (let i = 0; i < 5; i++) {
+      const { error: insertError } = await client
+        .from('profiles')
+        .insert({ id: user.id, username });
+
+      if (!insertError) {
+        return username;
+      }
+
+      if (insertError.code === '23505') {
+        username = generateUsernameSeed();
+        continue;
+      }
+
+      console.error('Failed to create profile:', insertError.message);
+      return null;
+    }
+  } catch (err) {
+    console.error('Unexpected profile error:', err);
+  }
+  return null;
+}
+
+function updateAuthUI() {
+  if (!authStatusLabel || !signOutButton || !authForm) return;
+
+  if (currentUser && currentUsername) {
+    authStatusLabel.textContent = `Signed in as ${currentUsername}`;
+    signOutButton.style.display = 'inline-block';
+    authForm.style.display = 'none';
+  } else {
+    authStatusLabel.textContent = 'Sign in to post and comment.';
+    signOutButton.style.display = 'none';
+    authForm.style.display = 'flex';
+  }
+}
+
+async function handleAuthState(user) {
+  currentUser = user;
+
+  if (currentUser) {
+    currentUsername = await ensureProfile(currentUser);
+    if (!currentUsername) {
+      alert('Unable to load your profile. Please try signing in again.');
+      await client.auth.signOut();
+      currentUser = null;
+    }
+  } else {
+    currentUsername = null;
+  }
+
+  updateAuthUI();
+}
+
+async function cleanupOldPosts() {
+  const cutoff = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: oldPosts, error } = await client
+    .from('posts')
+    .select('id, image_url')
+    .lt('created_at', cutoff);
+
+  if (error) {
+    console.error('Failed to look up old posts:', error.message);
+    return;
+  }
+
+  if (!oldPosts || oldPosts.length === 0) {
+    return;
+  }
+
+  const deletableIds = oldPosts.map((post) => post.id);
+
+  const imagePaths = oldPosts
+    .map((post) => extractImagePath(post.image_url))
+    .filter(Boolean);
+
+  if (imagePaths.length > 0) {
+    const { error: removeError } = await client.storage
+      .from('images')
+      .remove(imagePaths);
+
+    if (removeError) {
+      console.error('Failed to clean up old images:', removeError.message);
+    }
+  }
+
+  const { error: deleteError } = await client
+    .from('posts')
+    .delete()
+    .in('id', deletableIds);
+
+  if (deleteError) {
+    console.error('Failed to delete expired posts:', deleteError.message);
+  }
+}
+
 window.submitPost = async function () {
+  if (!requireAuth()) return;
   const content = document.getElementById('postContent').value.trim();
   const fileInput = document.getElementById('postImage');
   const imageChoice = document.querySelector('input[name="image-source"]:checked')?.value;
@@ -95,7 +259,12 @@ window.submitPost = async function () {
   }
 
   const { error: postError } = await client.from('posts').insert([
-    { content, image_url: imageUrl }
+    {
+      content,
+      image_url: imageUrl,
+      author_id: currentUser.id,
+      author_username: currentUsername
+    }
   ]);
 
   if (postError) {
@@ -109,7 +278,8 @@ window.submitPost = async function () {
   document.getElementById('image-url-input').value = '';
   document.getElementById('draw-preview').style.display = 'none';
 
-  loadPosts(false);
+  await loadPosts({ reset: true });
+  await loadMarqueeTopPosts();
 };
 
 window.vote = async function (postId, type) {
@@ -118,16 +288,24 @@ window.vote = async function (postId, type) {
   await client.from('votes').insert([{ post_id: postId, type }]);
   votes[postId] = type;
   localStorage.setItem('oiap_votes', JSON.stringify(votes));
-  loadPosts();
+  await loadPosts({ reset: true });
+  await loadMarqueeTopPosts();
 };
 
-async function loadPosts(append = true) {
+async function loadPosts({ reset = false } = {}) {
+  if (reset) {
+    postPage = 0;
+    allPostsLoaded = false;
+    const postsDiv = document.getElementById('posts');
+    if (postsDiv) postsDiv.innerHTML = '';
+  }
+
   if (loadingPosts || allPostsLoaded) return;
   loadingPosts = true;
 
   const { data: posts, error } = await client
     .from('posts')
-    .select('id, content, image_url, created_at, votes(type)')
+    .select('id, content, image_url, created_at, author_username, votes(type), comments(id, content, author_username, created_at)')
     .order('created_at', { ascending: false })
     .range(postPage * postsPerPage, (postPage + 1) * postsPerPage - 1);
 
@@ -137,12 +315,17 @@ async function loadPosts(append = true) {
     return;
   }
 
-  if (posts.length < postsPerPage) allPostsLoaded = true;
+  const safePosts = posts ?? [];
+
+  if (safePosts.length < postsPerPage) allPostsLoaded = true;
 
   const postsDiv = document.getElementById('posts');
-  if (!append) postsDiv.innerHTML = '';
+  if (!postsDiv) {
+    loadingPosts = false;
+    return;
+  }
 
-  posts.forEach(post => {
+  safePosts.forEach(post => {
     const upvotes = post.votes?.filter(v => v.type === 'up').length || 0;
     const downvotes = post.votes?.filter(v => v.type === 'down').length || 0;
     const horseVotes = post.votes?.filter(v => v.type === 'horse').length || 0;
@@ -156,13 +339,41 @@ async function loadPosts(append = true) {
       horseSound.currentTime = 0;
       horseSound.play().catch(() => {});
     }
+    const comments = (post.comments || []).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const commentsMarkup = comments.length
+      ? comments.map(comment => `
+          <div class="comment">
+            <span class="comment-author">${comment.author_username || 'Apparos'}</span>
+            <span class="comment-meta">${formatRelativeTime(comment.created_at)}</span>
+            <div>${comment.content}</div>
+          </div>
+        `).join('')
+      : '<div class="no-comments">No comments yet. Be the first to neigh.</div>';
+
+    const commentFormMarkup = currentUser && currentUsername
+      ? `
+        <form class="comment-form" onsubmit="submitComment('${post.id}', this); return false;">
+          <textarea placeholder="Share a comment..."></textarea>
+          <button type="submit">💬 Comment</button>
+        </form>
+      `
+      : '<div class="sign-in-reminder">Sign in to join the conversation.</div>';
+
     div.innerHTML = `
+      <div class="post-header">
+        <span class="post-author">${post.author_username || 'Apparos'}</span>
+        <span class="post-meta">${formatRelativeTime(post.created_at)}</span>
+      </div>
       <p>${emoji} ${content}</p>
       ${post.image_url ? `<img src="${post.image_url}" />` : ''}
-      <div style="margin-top:10px;display:flex;gap:10px;">
+      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
         <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
         <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
         <button onclick="vote('${post.id}', 'horse')">${emoji} ${horseVotes}</button>
+      </div>
+      <div class="comment-section">
+        ${commentsMarkup}
+        ${commentFormMarkup}
       </div>
     `;
     postsDiv.appendChild(div);
@@ -173,12 +384,14 @@ async function loadPosts(append = true) {
 }
 
 async function loadMarqueeTopPosts() {
+  const cutoff = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
   const { data: posts } = await client
     .from('posts')
     .select('id, content, image_url, votes(type)')
+    .gte('created_at', cutoff)
     .order('created_at', { ascending: false });
 
-  const scored = posts.map(post => {
+  const scored = (posts || []).map(post => {
     const up = post.votes?.filter(v => v.type === 'up').length || 0;
     const down = post.votes?.filter(v => v.type === 'down').length || 0;
     const horse = post.votes?.filter(v => v.type === 'horse').length || 0;
@@ -195,36 +408,127 @@ async function loadMarqueeTopPosts() {
     top.length > 0 ? top.join('   •   ') : 'No top posts yet. Be the first to post something legendary. 🐎';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadMarqueeTopPosts();
+window.submitComment = async function (postId, formEl) {
+  if (!requireAuth()) return false;
+  const textarea = formEl.querySelector('textarea');
+  const content = textarea.value.trim();
+  if (!content) {
+    alert('Please enter a comment first.');
+    return false;
+  }
+
+  const { error } = await client.from('comments').insert([
+    {
+      post_id: postId,
+      content,
+      author_id: currentUser.id,
+      author_username: currentUsername
+    }
+  ]);
+
+  if (error) {
+    alert('Failed to add comment.');
+    return false;
+  }
+
+  textarea.value = '';
+  await loadPosts({ reset: true });
+  return false;
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  authForm = document.getElementById('auth-form');
+  authEmailInput = document.getElementById('auth-email');
+  authPasswordInput = document.getElementById('auth-password');
+  authStatusLabel = document.getElementById('auth-status');
+  signOutButton = document.getElementById('auth-signout');
+
+  if (authForm) {
+    authForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = authEmailInput.value.trim();
+      const password = authPasswordInput.value;
+
+      if (!email || !password) {
+        alert('Email and password are required.');
+        return;
+      }
+
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert(error.message || 'Sign-in failed.');
+        return;
+      }
+
+      authPasswordInput.value = '';
+    });
+  }
+
+  const signUpButton = document.getElementById('auth-signup-btn');
+  if (signUpButton) {
+    signUpButton.addEventListener('click', async () => {
+      const email = authEmailInput.value.trim();
+      const password = authPasswordInput.value;
+
+      if (!email || !password) {
+        alert('Email and password are required.');
+        return;
+      }
+
+      const { error } = await client.auth.signUp({ email, password });
+      if (error) {
+        alert(error.message || 'Sign-up failed.');
+        return;
+      }
+
+      alert('Check your email to confirm your account. Once confirmed, sign in to start posting.');
+    });
+  }
+
+  if (signOutButton) {
+    signOutButton.addEventListener('click', async () => {
+      await client.auth.signOut();
+    });
+  }
+
+  const { data } = await client.auth.getSession();
+  await handleAuthState(data.session?.user ?? null);
+
+  client.auth.onAuthStateChange(async (_event, session) => {
+    await handleAuthState(session?.user ?? null);
+    await loadPosts({ reset: true });
+  });
+
+  await cleanupOldPosts();
+  await loadMarqueeTopPosts();
   refreshOnlineStatus();
-  loadPosts(false);
+  await loadPosts({ reset: true });
   setInterval(refreshOnlineStatus, 60 * 1000);
 
-  const drawLaunch = document.getElementById("draw-launch");
-  const uploadSection = document.getElementById("upload-section");
+  const drawLaunch = document.getElementById('draw-launch');
+  const uploadSection = document.getElementById('upload-section');
   const imageRadios = document.querySelectorAll('input[name="image-source"]');
 
   imageRadios.forEach(radio => {
-    radio.addEventListener("change", () => {
-      if (radio.value === "draw" && radio.checked) {
-        drawLaunch.style.display = "block";
-        uploadSection.style.display = "none";
+    radio.addEventListener('change', () => {
+      if (radio.value === 'draw' && radio.checked) {
+        drawLaunch.style.display = 'block';
+        uploadSection.style.display = 'none';
       } else {
-        drawLaunch.style.display = "none";
-        uploadSection.style.display = "block";
+        drawLaunch.style.display = 'none';
+        uploadSection.style.display = 'block';
       }
     });
   });
 
-  document.getElementById("draw-btn").addEventListener("click", () => {
-    document.getElementById("draw-modal").style.display = "block";
-    loadLineArt("horse");
+  document.getElementById('draw-btn').addEventListener('click', () => {
+    document.getElementById('draw-modal').style.display = 'block';
+    loadLineArt('horse');
   });
 
   window.addEventListener('scroll', () => {
     const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
-    if (nearBottom) loadPosts(true);
+    if (nearBottom) loadPosts();
   });
 });
 
