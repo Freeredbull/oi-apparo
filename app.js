@@ -449,17 +449,182 @@ async function loadPosts({ reset = false } = {}) {
         <button onclick="vote('${post.id}', 'up')">⬆️ ${upvotes}</button>
         <button onclick="vote('${post.id}', 'down')">⬇️ ${downvotes}</button>
         <button onclick="vote('${post.id}', 'horse')">${emoji} ${horseVotes}</button>
+        <button class="share-button">📤 Share</button>
       </div>
       <div class="comment-section">
         ${commentsMarkup}
         ${commentFormMarkup}
       </div>
     `;
+    const shareButton = div.querySelector('.share-button');
+    if (shareButton) {
+      shareButton.setAttribute('aria-label', 'Share this post from OI APPARO');
+      shareButton.addEventListener('click', () => sharePost(post));
+    }
     postsDiv.appendChild(div);
   });
 
   postPage++;
   loadingPosts = false;
+}
+
+async function sharePost(post) {
+  const shareText = `${post.author_username || 'Apparos'} on OI APPARO:\n${post.content}`;
+
+  try {
+    const blob = await createShareImage(post);
+    const files = blob
+      ? [new File([blob], 'oi-apparo-share.png', { type: 'image/png' })]
+      : [];
+
+    if (files.length && navigator.canShare && navigator.canShare({ files })) {
+      await navigator.share({
+        title: 'OI APPARO',
+        text: shareText,
+        url: window.location.origin,
+        files
+      });
+      return;
+    }
+
+    if (navigator.share) {
+      await navigator.share({
+        title: 'OI APPARO',
+        text: shareText,
+        url: window.location.origin
+      });
+      return;
+    }
+
+    if (blob) {
+      triggerImageDownload(blob);
+      alert('Share image downloaded. Share it anywhere you like to spread the OI APPARO legend!');
+      return;
+    }
+
+    await navigator.clipboard?.writeText?.(shareText);
+    alert('Share text copied to clipboard.');
+  } catch (error) {
+    console.error('Share failed:', error);
+    alert('Could not share this post automatically. A download of the share artwork will start instead.');
+    try {
+      const fallbackBlob = await createShareImage(post);
+      if (fallbackBlob) {
+        triggerImageDownload(fallbackBlob);
+      }
+    } catch (err) {
+      console.error('Share fallback failed:', err);
+    }
+  }
+}
+
+function triggerImageDownload(blob) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'oi-apparo-share.png';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+async function createShareImage(post) {
+  try {
+    await document.fonts?.ready;
+  } catch (err) {
+    console.warn('Fonts not ready for share image, continuing anyway.', err);
+  }
+
+  const canvas = document.createElement('canvas');
+  const width = 1080;
+  const height = 1080;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) return null;
+
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, '#001b00');
+  gradient.addColorStop(0.5, '#012f12');
+  gradient.addColorStop(1, '#013d18');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.strokeStyle = '#39ff14';
+  ctx.lineWidth = 16;
+  ctx.strokeRect(40, 40, width - 80, height - 80);
+
+  ctx.fillStyle = '#39ff14';
+  ctx.font = 'bold 64px "Press Start 2P", monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.shadowColor = '#00ff9d';
+  ctx.shadowBlur = 20;
+  ctx.fillText('OI APPARO', 80, 80);
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#d6ffd6';
+  ctx.font = '28px "Press Start 2P", monospace';
+  ctx.fillText('Green Nokia Broadcast', 84, 160);
+
+  ctx.fillStyle = '#39ff14';
+  ctx.font = '32px "Press Start 2P", monospace';
+  const authorLabel = `${post.author_id ? 'Verified' : 'Guest'} — ${post.author_username || 'Apparos'}`;
+  wrapText(ctx, authorLabel, 84, 230, width - 168, 44);
+
+  ctx.fillStyle = '#f5fff5';
+  ctx.font = '36px "Press Start 2P", monospace';
+  const contentY = 320;
+  wrapText(ctx, post.content || '', 84, contentY, width - 168, 52);
+
+  ctx.fillStyle = '#39ff14';
+  ctx.font = '24px "Press Start 2P", monospace';
+  const footerText = `${formatRelativeTime(post.created_at)} • Share your voice at oiapparo`; 
+  wrapText(ctx, footerText, 84, height - 160, width - 168, 36);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#39ff14';
+  ctx.font = '32px "Press Start 2P", monospace';
+  ctx.fillText('#GreenNokia', width - 84, height - 100);
+
+  return await new Promise(resolve => {
+    canvas.toBlob(blob => resolve(blob), 'image/png');
+  });
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  if (!text) return;
+
+  const paragraphs = String(text).split(/\n+/);
+  let cursorY = y;
+
+  paragraphs.forEach((paragraph, index) => {
+    const words = paragraph.split(/\s+/);
+    let line = '';
+
+    words.forEach(word => {
+      const testLine = line ? `${line} ${word}` : word;
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && line) {
+        ctx.fillText(line, x, cursorY);
+        line = word;
+        cursorY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    });
+
+    if (line) {
+      ctx.fillText(line, x, cursorY);
+      cursorY += lineHeight;
+    }
+
+    if (index < paragraphs.length - 1) {
+      cursorY += lineHeight * 0.5;
+    }
+  });
 }
 
 async function loadMarqueeTopPosts() {

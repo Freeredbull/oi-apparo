@@ -157,6 +157,21 @@ button:focus {
   box-shadow: 0 0 12px #0aaa;
 }
 
+.share-button {
+  background: #001a00;
+  color: #39ff14;
+  border: 2px solid #39ff14;
+  box-shadow: 0 0 10px #1fff80;
+  letter-spacing: 1px;
+}
+
+.share-button:hover,
+.share-button:focus {
+  background: #053d13;
+  color: #b5ffce;
+  box-shadow: 0 0 14px #39ff14;
+}
+
 #posts {
   padding: 0;
   list-style: none;
@@ -361,6 +376,20 @@ button:focus {
   border: 2px solid #ff0033;
   text-shadow: 0 0 2px #ff0033;
   box-shadow: 0 0 6px #ff0033;
+}
+
+.nixtop-active .share-button {
+  background: #220000;
+  border-color: #ff3366;
+  color: #ff6699;
+  box-shadow: 0 0 12px #ff3366;
+}
+
+.nixtop-active .share-button:hover,
+.nixtop-active .share-button:focus {
+  background: #3a0010;
+  color: #ffe0ef;
+  box-shadow: 0 0 16px #ff6699;
 }
 
 .nixtop-active button:hover,
