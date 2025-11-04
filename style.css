@@ -419,6 +419,7 @@ button:focus {
   border: 2px solid #0f0;
   image-rendering: pixelated;
   box-shadow: 0 0 8px #0f0;
+  touch-action: none;
 }
 
 .draw-buttons,

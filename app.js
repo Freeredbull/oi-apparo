@@ -546,23 +546,49 @@ if (canvas && ctx && drawModal) {
   let drawing = false;
   let mode = "draw";
 
-  function getCanvasCoords(e) {
+  function getCanvasCoords(evt) {
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = evt.clientX ?? evt.pageX ?? evt.touches?.[0]?.clientX ?? 0;
+    const clientY = evt.clientY ?? evt.pageY ?? evt.touches?.[0]?.clientY ?? 0;
+
     return {
-      x: (e.clientX || e.pageX || e.touches?.[0]?.clientX) - rect.left,
-      y: (e.clientY || e.pageY || e.touches?.[0]?.clientY) - rect.top
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
     };
   }
 
- function drawStroke(x, y) {
-  ctx.lineWidth = 4;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.lineTo(x, y);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-}
+  function drawStroke(x, y) {
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = mode === "erase" ? "#000000" : "#00FF00";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  function startDrawing(evt) {
+    drawing = true;
+    const { x, y } = getCanvasCoords(evt);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  function continueDrawing(evt) {
+    if (!drawing) return;
+    evt.preventDefault();
+    const { x, y } = getCanvasCoords(evt);
+    drawStroke(x, y);
+  }
+
+  function stopDrawing() {
+    if (!drawing) return;
+    drawing = false;
+    ctx.beginPath();
+  }
 
   function loadLineArt(type) {
     const img = new Image();
@@ -589,43 +615,38 @@ if (canvas && ctx && drawModal) {
   document.getElementById("clear-drawing").onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
   document.getElementById("close-drawing").onclick = () => drawModal.style.display = "none";
 
-  canvas.addEventListener("mousedown", (e) => {
-  drawing = true;
-  const { x, y } = getCanvasCoords(e);
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-});
-
-canvas.addEventListener("mousemove", (e) => {
-  if (!drawing) return;
-  const { x, y } = getCanvasCoords(e);
-  drawStroke(x, y);
-});
-
-canvas.addEventListener("mouseup", () => {
-  drawing = false;
-  ctx.beginPath();
-});
-
-canvas.addEventListener("mouseout", () => {
-  drawing = false;
-});
-
-  canvas.addEventListener("touchstart", (e) => {
-    drawing = true;
-    const { x, y } = getCanvasCoords(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+  canvas.addEventListener("pointerdown", (evt) => {
+    if (evt.button !== undefined && evt.button !== 0) {
+      return;
+    }
+    if (typeof canvas.setPointerCapture === "function" && evt.pointerId !== undefined) {
+      try {
+        canvas.setPointerCapture(evt.pointerId);
+      } catch (captureErr) {
+        console.warn("Pointer capture failed", captureErr);
+      }
+    }
+    startDrawing(evt);
   });
 
-  canvas.addEventListener("touchend", () => drawing = false);
-  canvas.addEventListener("touchmove", (e) => {
-  if (!drawing) return;
-  e.preventDefault();
-  const touch = e.touches[0];
-  const { x, y } = getCanvasCoords(touch);
-  drawStroke(x, y);
-}, { passive: false });
+  canvas.addEventListener("pointermove", (evt) => {
+    if (!drawing) {
+      return;
+    }
+    continueDrawing(evt);
+  });
+
+  canvas.addEventListener("pointerup", () => {
+    stopDrawing();
+  });
+
+  canvas.addEventListener("pointercancel", () => {
+    stopDrawing();
+  });
+
+  canvas.addEventListener("pointerleave", () => {
+    stopDrawing();
+  });
 
   document.getElementById("save-drawing").onclick = () => {
     canvas.toBlob(async (blob) => {
