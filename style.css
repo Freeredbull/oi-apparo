@@ -739,6 +739,55 @@ textarea, input[type=file] {
   padding: 1rem 0.5rem;
 }
 
+.post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.post-actions button {
+  flex: 1 1 140px;
+}
+
+.guest-post-btn {
+  background: #041;
+  border-color: #0b4;
+  color: #7fff7f;
+}
+
+.guest-post-btn:hover {
+  background: #062;
+}
+
+.guest-hint {
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  color: #7fff7f;
+  opacity: 0.75;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.7rem;
+  margin-left: 0.35rem;
+}
+
+.guest-label {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 255, 0, 0.25);
+  background: rgba(0, 255, 0, 0.05);
+  color: #8bff8b;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .visibility-toggle {
   margin-top: 8px;
   font-size: 12px;

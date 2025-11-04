@@ -89,7 +89,11 @@
         </div>
 
         <!-- Submit -->
-        <button onclick="submitPost()">📨 Post</button>
+        <div class="post-actions">
+          <button type="button" onclick="submitPost()">📨 Post</button>
+          <button type="button" class="guest-post-btn" onclick="submitGuestPost()">🕵️ Post as Guest</button>
+        </div>
+        <div class="guest-hint">Guest posts appear as krifoapparos### and won’t carry the verified badge.</div>
       </div>
     </div>
 

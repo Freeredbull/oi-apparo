@@ -106,9 +106,39 @@ function extractImagePath(url) {
   }
 }
 
-function generateUsernameSeed() {
-  const random = Math.floor(100 + Math.random() * 900);
-  return `Apparos${random}`;
+const GUEST_IDENTITY_KEY = 'oiap_guest_identity';
+
+function sanitizeEmailForUsername(email) {
+  if (!email) return '';
+  const localPart = email.split('@')[0] ?? '';
+  const cleaned = localPart.replace(/[^a-z0-9]/gi, '').toLowerCase();
+  return cleaned.slice(0, 18);
+}
+
+function generateProfileUsername(user) {
+  const base = sanitizeEmailForUsername(user?.email) || 'apparos';
+  const suffix = Math.floor(100 + Math.random() * 900);
+  return `${base}${suffix}`;
+}
+
+function generateGuestUsername() {
+  const suffix = Math.floor(100 + Math.random() * 900);
+  return `krifoapparos${suffix}`;
+}
+
+function getGuestUsername() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(GUEST_IDENTITY_KEY) || 'null');
+    if (stored?.username) {
+      return stored.username;
+    }
+  } catch (err) {
+    console.warn('Failed to parse guest identity; regenerating.', err);
+  }
+
+  const username = generateGuestUsername();
+  localStorage.setItem(GUEST_IDENTITY_KEY, JSON.stringify({ username }));
+  return username;
 }
 
 async function ensureProfile(user) {
@@ -128,7 +158,7 @@ async function ensureProfile(user) {
       return data.username;
     }
 
-    let username = generateUsernameSeed();
+    let username = generateProfileUsername(user);
     for (let i = 0; i < 5; i++) {
       const { error: insertError } = await client
         .from('profiles')
@@ -139,7 +169,7 @@ async function ensureProfile(user) {
       }
 
       if (insertError.code === '23505') {
-        username = generateUsernameSeed();
+        username = generateProfileUsername(user);
         continue;
       }
 
@@ -160,10 +190,14 @@ function updateAuthUI() {
     signOutButton.style.display = 'inline-block';
     authForm.style.display = 'none';
   } else {
-    authStatusLabel.textContent = 'Sign in to post and comment.';
+    authStatusLabel.textContent = 'Sign in to post and comment, or use guest posting below.';
     signOutButton.style.display = 'none';
     authForm.style.display = 'flex';
   }
+}
+
+function verifiedBadgeMarkup() {
+  return '<span class="verified-badge" title="Verified Apparo">🐎✅</span>';
 }
 
 async function handleAuthState(user) {
@@ -225,19 +259,19 @@ async function cleanupOldPosts() {
   }
 }
 
-window.submitPost = async function () {
-  if (!requireAuth()) return;
+async function collectPostFormData() {
   const content = document.getElementById('postContent').value.trim();
   const fileInput = document.getElementById('postImage');
   const imageChoice = document.querySelector('input[name="image-source"]:checked')?.value;
   const drawUrl = document.getElementById('image-url-input').value.trim();
   let imageUrl = null;
 
-  const hasUpload = imageChoice === 'upload' && fileInput.files.length > 0;
+  const hasUpload = imageChoice === 'upload' && fileInput && fileInput.files.length > 0;
   const hasDrawing = imageChoice === 'draw' && !!drawUrl;
 
   if (!content && !hasUpload && !hasDrawing) {
-    return alert("Please enter text, upload an image, or draw something!");
+    alert('Please enter text, upload an image, or draw something!');
+    return null;
   }
 
   if (hasUpload) {
@@ -247,7 +281,7 @@ window.submitPost = async function () {
 
     if (uploadError) {
       alert('Image upload failed!');
-      return;
+      return null;
     }
 
     const { data } = client.storage.from('images').getPublicUrl(fileName);
@@ -258,28 +292,67 @@ window.submitPost = async function () {
     imageUrl = drawUrl;
   }
 
+  return { content, imageUrl };
+}
+
+function resetPostForm() {
+  document.getElementById('postContent').value = '';
+  const fileInput = document.getElementById('postImage');
+  if (fileInput) fileInput.value = '';
+  document.getElementById('image-url-input').value = '';
+  document.getElementById('draw-preview').style.display = 'none';
+  const uploadRadio = document.querySelector('input[name="image-source"][value="upload"]');
+  if (uploadRadio) uploadRadio.checked = true;
+  const uploadSection = document.getElementById('upload-section');
+  const drawLaunch = document.getElementById('draw-launch');
+  if (uploadSection) uploadSection.style.display = 'block';
+  if (drawLaunch) drawLaunch.style.display = 'none';
+}
+
+async function handlePostSubmission({ guest = false } = {}) {
+  if (!guest && !requireAuth()) return;
+
+  const payload = await collectPostFormData();
+  if (!payload) return;
+
+  const { content, imageUrl } = payload;
+  const authorUsername = guest ? getGuestUsername() : currentUsername;
+  const authorId = guest ? null : currentUser?.id ?? null;
+
   const { error: postError } = await client.from('posts').insert([
     {
       content,
       image_url: imageUrl,
-      author_id: currentUser.id,
-      author_username: currentUsername
+      author_id: authorId,
+      author_username: authorUsername
     }
   ]);
 
   if (postError) {
-    alert("Failed to post!");
+    alert('Failed to post!');
     return;
   }
 
-  // Reset form
-  document.getElementById('postContent').value = '';
-  fileInput.value = '';
-  document.getElementById('image-url-input').value = '';
-  document.getElementById('draw-preview').style.display = 'none';
-
+  resetPostForm();
   await loadPosts({ reset: true });
   await loadMarqueeTopPosts();
+
+  if (guest && authStatusLabel) {
+    authStatusLabel.textContent = `Posting as guest ${authorUsername}`;
+    setTimeout(() => {
+      if (!currentUser) {
+        authStatusLabel.textContent = 'Sign in to post and comment, or use guest posting below.';
+      }
+    }, 4000);
+  }
+}
+
+window.submitPost = async function () {
+  await handlePostSubmission({ guest: false });
+};
+
+window.submitGuestPost = async function () {
+  await handlePostSubmission({ guest: true });
 };
 
 window.vote = async function (postId, type) {
@@ -305,7 +378,7 @@ async function loadPosts({ reset = false } = {}) {
 
   const { data: posts, error } = await client
     .from('posts')
-    .select('id, content, image_url, created_at, author_username, votes(type), comments(id, content, author_username, created_at)')
+    .select('id, content, image_url, created_at, author_username, author_id, votes(type), comments(id, content, author_username, author_id, created_at)')
     .order('created_at', { ascending: false })
     .range(postPage * postsPerPage, (postPage + 1) * postsPerPage - 1);
 
@@ -341,13 +414,16 @@ async function loadPosts({ reset = false } = {}) {
     }
     const comments = (post.comments || []).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     const commentsMarkup = comments.length
-      ? comments.map(comment => `
+      ? comments.map(comment => {
+          const commentBadge = comment.author_id ? ` ${verifiedBadgeMarkup()}` : ' <span class="guest-label">Guest</span>';
+          return `
           <div class="comment">
-            <span class="comment-author">${comment.author_username || 'Apparos'}</span>
+            <span class="comment-author">${comment.author_username || 'Apparos'}${commentBadge}</span>
             <span class="comment-meta">${formatRelativeTime(comment.created_at)}</span>
             <div>${comment.content}</div>
           </div>
-        `).join('')
+        `;
+        }).join('')
       : '<div class="no-comments">No comments yet. Be the first to neigh.</div>';
 
     const commentFormMarkup = currentUser && currentUsername
@@ -359,9 +435,12 @@ async function loadPosts({ reset = false } = {}) {
       `
       : '<div class="sign-in-reminder">Sign in to join the conversation.</div>';
 
+    const verifiedBadge = post.author_id ? ` ${verifiedBadgeMarkup()}` : '';
+    const guestLabel = post.author_id ? '' : ' <span class="guest-label">Guest</span>';
+
     div.innerHTML = `
       <div class="post-header">
-        <span class="post-author">${post.author_username || 'Apparos'}</span>
+        <span class="post-author">${post.author_username || 'Apparos'}${verifiedBadge}${guestLabel}</span>
         <span class="post-meta">${formatRelativeTime(post.created_at)}</span>
       </div>
       <p>${emoji} ${content}</p>
@@ -475,7 +554,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      const { error } = await client.auth.signUp({ email, password });
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const { error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectTo
+        }
+      });
       if (error) {
         alert(error.message || 'Sign-up failed.');
         return;
