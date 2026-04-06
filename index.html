@@ -18,15 +18,14 @@
     <p class="site-subtitle">Το timeline των apparon της Κύπρου</p>
   </header>
 
-  <!-- Main Social Feed Layout -->
+  <!-- Main Social Layout -->
   <main class="container social-layout">
-    <!-- Post Composer -->
+    <!-- Create Post -->
     <section class="post-form social-card">
       <h2>Create Post</h2>
 
       <textarea id="postContent" placeholder="Oi Apparo, τι έγινε σήμερα;"></textarea>
 
-      <!-- Image Source Selection -->
       <div class="image-source-options">
         <div>
           <label>
@@ -46,11 +45,11 @@
           </label>
         </div>
 
-        <div id="draw-launch" style="margin-top: 6px; display: none;">
+        <div id="draw-launch" style="display: none;">
           <button type="button" id="draw-btn">🎨 Open Draw Pad</button>
         </div>
 
-        <div id="draw-preview" style="margin-top: 10px; display: none; color: #0f0; font-size: 0.85rem;">
+        <div id="draw-preview" style="display: none;">
           ✅ Drawing saved and ready to post.
         </div>
 
@@ -60,20 +59,24 @@
       <button type="button" onclick="submitPost()">📨 Post</button>
     </section>
 
-    <!-- Controls Row -->
+    <!-- Small controls section -->
     <section class="controls-box social-card">
-      <div id="mode-toggle" class="mode-toggle">
-        <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
-        <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
+      <div class="controls-top">
+        <div id="mode-toggle" class="mode-toggle">
+          <button id="mode-apparos" class="mode-btn active">🐎 Apparos Mode</button>
+          <button id="mode-nixtop" class="mode-btn">🦇 Nixtopapparos Mode</button>
+        </div>
+
+        <div id="online-count">🟢 loading...</div>
       </div>
 
-      <button id="apparos-near-btn">🔞 APPARES NEAR YOU 🔞</button>
+      <div class="controls-bottom">
+        <button id="apparos-near-btn">🔞 APPARES NEAR YOU 🔞</button>
 
-      <div id="apparos-message" style="margin-top: 10px; display: none; color: #0f0; font-weight: bold;">
-        OI APPARO POU ENA SOU DIKSO APPARES
+        <div id="apparos-message" style="display: none;">
+          OI APPARO POU ENA SOU DIKSO APPARES
+        </div>
       </div>
-
-      <div id="online-count">🟢 loading...</div>
     </section>
 
     <!-- Feed -->
@@ -87,15 +90,15 @@
   </main>
 
   <!-- Drawing Pad Modal -->
-  <div id="draw-modal" style="display:none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: black; padding: 10px; border: 2px solid green; z-index: 1000;">
-    <div style="margin-bottom: 8px;">
+  <div id="draw-modal">
+    <div class="draw-top-buttons">
       <button id="select-horse">🐎 Horse</button>
       <button id="select-bat">🦇 Bat</button>
     </div>
 
-    <canvas id="draw-canvas" width="300" height="300" style="border:2px solid green; background:black;"></canvas>
+    <canvas id="draw-canvas" width="300" height="300"></canvas>
 
-    <div style="margin-top:10px;">
+    <div class="draw-bottom-buttons">
       <button id="draw-tool">🖌 Draw</button>
       <button id="erase-tool">🧽 Erase</button>
       <button id="clear-drawing">🧹 Clear</button>
