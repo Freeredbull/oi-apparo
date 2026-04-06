@@ -351,4 +351,187 @@ document.addEventListener('DOMContentLoaded', () => {
     msg.style.display = msg.style.display === 'none' ? 'block' : 'none';
   });
 });
+/* ===== APPAROLEKSI TIS IMERAS ===== */
 
+const apparoleksiWords = [
+  "μαππα","φουκου","σσιερος","πελλαρα","κουμπαρος","κουζουλος","κουζου","πελλος","λαλλω","κουβεντα",
+  "σσιηλος","παππου","γιαγια","μαμμα","παππας","φιλος","φιλη","παρεα","γειτονας","χωριο",
+  "λεμεσος","λαρνακα","παφος","αγιαναπα","παραλιμνι","σουβλα","σουβλακι","χαλλουμι","αναρι","κουλουρι",
+  "καφες","τσιπουρο","ποτηρι","κουπα","μπουκκα","φαγητο","μαγειρος","κουζινα","καρβουνο","φουρνος",
+  "κουταλα","πιατο","τραπεζι","καρεκλα","κρεβατι","σπιτι","δωματιο","πορτα","παραθυρο","αυλη",
+  "δρομος","αμαξι","βενζινη","ταξι","λεωφορειο","ποδηλατο","παραλια","θαλασσα","κυμμα","αμμος",
+  "ηλιος","φεγγαρι","αστερι","βροχη","καταιγιδα","αερας","ζεστη","κρυο","χειμωνας","καλοκαιρι",
+  "ανοιξη","φθινοπωρο","μερα","νυχτα","πρωι","βραδυ","ωρα","λεπτο","χρονος","ημερα",
+  "σχολειο","μαθητης","δασκαλος","μαθημα","βιβλιο","τετραδιο","στυλο","μολυβι","γραφειο","ταξη",
+  "διαλειμμα","παιχνιδι","μπαλα","γκολ","γηπεδο","ομαδα","νικη","ηττα","φιλαθλος","παικτης",
+  "τσαιρα","κοπελλουι","κοπελλου","κουβερτα","σεντονι","μαξιλαρι","πλαστικο","σιερος","στρατος","δουλεια",
+  "ρεζιλι","χαβαλες","αστειο","κουτσομπολιο","φημη","ειδηση","μηνυμα","σελιδα","ιστοσελιδα","κειμενο",
+  "εικονα","βιντεο","καμερα","φωτογραφια","κινητο","τηλεφωνο","οθονη","κουμπι","πληκτρο","γραψιμο",
+  "αναρτηση","ποστ","σχολιο","αντιδραση","μοδα","παπουτσι","φανελα","παντελονι","μπλουζα","καπελλο",
+  "γυαλι","ρολοι","τσαντα","πορτοφολι","κλειδι","κλειδαρια","μπαλκονι","ταρατσα","σκαλα","ασανσερ",
+  "πολυκατοικια","χωραφι","δεντρο","λουλουδι","φυλλο","κλαδι","ριζα","χωμα","πετρα","βραχος",
+  "πηγαδι","νερο","ποταμι","λιμνη","φραγμα","βρυση","ποτηρι","κανταρι","κουβας","κουβαρκαν",
+  "γελιο","κλαμα","φωνη","ηχος","θορυβος","σιωπη","αγαπη","θυμος","χαρα","λυπη",
+  "φοβος","ελπιδα","σκεψη","ιδεα","ονειρο","ζωη","κοσμος","ανθρωπος","γλωσσα","λεξη",
+  "κουβεντιαζω","συντυχαινω","τρωω","πιννω","καθουμαι","σηκωνουμαι","κοιμουμαι","ξυπνω","περπατω","τρεχω",
+  "γυριζω","δουλευκω","μαθαινω","γραφω","διαβαζω","βλεπω","ακουω","μιλω","γελω","κλαιω",
+  "χορος","τραγουδι","μουσικη","γλεντι","παρτι","γενεθλια","γαμος","βαφτιση","εκκλησια","παπας",
+  "ψαλτης","εικονα","σταυρος","κερι","λιβανος","αγιος","θεος","παναγια","ουρανος","γη",
+  "βουνο","δασος","κηπος","γατα","σκυλος","πουλλι","αλογο","γαρουφαλλο","μωρο","παιδι",
+  "αγορι","κοριτσι","νεαρος","γερος","γρια","μανα","πατερας","αδελφος","αδελφη","ξαδελφος",
+  "ξαδελφη","νονος","νοννα","πεθερα","γαμπρος","νυφη","καλεσμενος","τραπεζωμα","σουσμα","ταβερνα",
+  "καφενες","σερβιτορος","λογαριασμος","ρεστα","τραπουλα","πρεφα","ταβλι","ζαρι","τυχη","κερδος",
+  "χασιμο","ζορικος","ευκολος","δυσκολος","γληορος","αργος","ψηλος","κοντος","χοντρος","αδυνατος",
+  "ζεστος","κρυος","μαλακος","σκληρος","γλυκος","πικρος","αλμυρος","καυτος","δροσερος","καθαρος",
+  "βρωμικος","φωτεινος","σκοτεινος","ηρεμος","αγριος","κουραση","πεινα","διψα","αρρωστια","γιατρος",
+  "νοσοκομειο","φαρμακο","θεραπεια","δοντι","ματι","αφτι","μυτη","στομα","χερι","ποδι",
+  "κεφαλι","σωμα","καρδια","στομαχι","τραυμα","κοψιμο","γρατζουνια","μπανιο","σαπουνι","πετσετα",
+  "πλυντηριο","σκουπα","σφουγγαρι","καθαριοτητα","σκονη","καπνος","φωθκια","σταχτη","σπιρτο","κεραυνος",
+  "συννεφο","χαλαζι","δροσια","καυσωνας","ανατολη","δυση","μεσημερι","απογευμα","χαραματα","μεσανυχτα",
+  "δευτερα","τριτη","τεταρτη","πεμπτη","παρασκευη","σαββατο","κυριακη","γεναρης","φλεβαρης","μαρτης",
+  "απριλης","μαης","ιουνης","ιουλης","αουγουστος","σεπτεμβρης","οκτωβρης","νοεμβρης","δεκεμβρης","καλοσυνη",
+  "κακκια","πεισμα","ντροπη","περηφανια","δυναμη","αδυναμια","ηρεμια","φασαρια","μπερδεμα","σαχλαμαρα",
+  "μαλακια","κουζουλαδα","πλακα","πειραγμα","ρεζιλεμα","συγχυση","αναμπουμπουλα","συναξι","παναϋρι","πανηγυρι",
+  "καρεκλουι","πορτουι","σπιτουι","κοπελλουθκια","μωρουι","μωρα","κουμπαρκα","σσιεροκοππος","ππαλουζες","τρασιη"
+];
+
+const apparoleksiToday = new Date();
+const apparoleksiStart = new Date(apparoleksiToday.getFullYear(), 0, 0);
+const apparoleksiDiff = apparoleksiToday - apparoleksiStart;
+const apparoleksiOneDay = 1000 * 60 * 60 * 24;
+const apparoleksiDayOfYear = Math.floor(apparoleksiDiff / apparoleksiOneDay);
+
+const secretWord = apparoleksiWords[apparoleksiDayOfYear % apparoleksiWords.length].toLowerCase();
+
+let wordleAttempts = 0;
+const maxWordleAttempts = 6;
+
+const wordleInput = document.getElementById("wordle-input");
+const wordleSubmit = document.getElementById("wordle-submit");
+const wordleGrid = document.getElementById("wordle-grid");
+const wordleMessage = document.getElementById("wordle-message");
+const wordleLength = document.getElementById("wordle-length");
+
+if (wordleLength) {
+  wordleLength.textContent = `🔤 ${secretWord.length} γράμματα`;
+}
+
+if (wordleSubmit) {
+  wordleSubmit.addEventListener("click", submitWordleGuess);
+}
+
+if (wordleInput) {
+  wordleInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitWordleGuess();
+    }
+  });
+}
+
+function submitWordleGuess() {
+  if (!wordleInput || !wordleGrid || !wordleMessage) return;
+  if (wordleAttempts >= maxWordleAttempts) return;
+
+  const guess = wordleInput.value
+    .trim()
+    .toLowerCase()
+    .replace(/[^α-ωάέήίόύώϊϋΐΰς]/g, "");
+
+  if (!guess) {
+    showWordleMessage("γράψε κάτι ρε apparo");
+    return;
+  }
+
+  if (guess.length !== secretWord.length) {
+    showWordleMessage(`❌ Η λέξη θέλει ${secretWord.length} γράμματα`);
+    return;
+  }
+
+  createWordleRow(guess);
+  wordleAttempts++;
+
+  if (guess === secretWord) {
+    showWordleMessage("🐎 Είσαι σωστός apparo!");
+    disableWordleGame();
+    return;
+  }
+
+  if (wordleAttempts >= maxWordleAttempts) {
+    showWordleMessage(`🦇 Έχασες ρε apparo! Η λέξη ήταν: ${secretWord}`);
+    disableWordleGame();
+    return;
+  }
+
+  showWordleMessage(`Προσπάθεια ${wordleAttempts}/${maxWordleAttempts}`);
+  wordleInput.value = "";
+  wordleInput.focus();
+}
+
+function createWordleRow(guess) {
+  const row = document.createElement("div");
+  row.className = "wordle-row";
+
+  for (let i = 0; i < guess.length; i++) {
+    const cell = document.createElement("div");
+    cell.className = "wordle-cell";
+    cell.textContent = guess[i];
+
+    if (guess[i] === secretWord[i]) {
+      cell.classList.add("correct");
+    } else if (secretWord.includes(guess[i])) {
+      cell.classList.add("present");
+    } else {
+      cell.classList.add("wrong");
+    }
+
+    row.appendChild(cell);
+  }
+
+  wordleGrid.appendChild(row);
+}
+
+function showWordleMessage(message) {
+  if (wordleMessage) {
+    wordleMessage.textContent = message;
+  }
+}
+
+function disableWordleGame() {
+  if (wordleInput) wordleInput.disabled = true;
+  if (wordleSubmit) wordleSubmit.disabled = true;
+}
+
+/* ===== GREEK KEYBOARD FOR APPAROLEKSI ===== */
+
+const greekKeys = document.querySelectorAll(".greek-key[data-letter]");
+const wordleBackspace = document.getElementById("wordle-backspace");
+const wordleClear = document.getElementById("wordle-clear");
+
+greekKeys.forEach((key) => {
+  key.addEventListener("click", () => {
+    if (!wordleInput || wordleInput.disabled) return;
+
+    const letter = key.dataset.letter || "";
+    if (wordleInput.value.length >= secretWord.length) return;
+
+    wordleInput.value += letter;
+    wordleInput.focus();
+  });
+});
+
+if (wordleBackspace) {
+  wordleBackspace.addEventListener("click", () => {
+    if (!wordleInput || wordleInput.disabled) return;
+    wordleInput.value = wordleInput.value.slice(0, -1);
+    wordleInput.focus();
+  });
+}
+
+if (wordleClear) {
+  wordleClear.addEventListener("click", () => {
+    if (!wordleInput || wordleInput.disabled) return;
+    wordleInput.value = "";
+    wordleInput.focus();
+  });
+}
