@@ -12,10 +12,12 @@ body {
   padding: 70px 1rem 2rem;
   min-height: 100vh;
   overflow-x: hidden;
-  display: block;
 }
 
-/* Marquee */
+/* =========================
+   MARQUEE
+========================= */
+
 #marquee-container {
   position: fixed;
   top: 0;
@@ -30,7 +32,7 @@ body {
   white-space: nowrap;
   border-bottom: 2px solid #0f0;
   padding: 6px 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
 }
 
 #marquee-text {
@@ -48,17 +50,62 @@ body {
   }
 }
 
-/* Header */
-.site-header {
+/* =========================
+   PAGE LAYOUT
+========================= */
+
+.top-area {
   width: 100%;
   max-width: 760px;
-  margin: 0 auto 1.5rem;
-  text-align: center;
+  margin: 5.25rem auto 1.5rem auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
+
+.title-area {
+  width: 100%;
+  min-width: 0;
+}
+
+.top-right-panel {
+  width: 100%;
+  max-width: 760px;
+  background: #111;
+  border: 3px solid #0f0;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #0f0aa0;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.container.social-layout {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.post-form,
+.feed-column {
+  width: 100%;
+  max-width: 760px;
+}
+
+/* =========================
+   TYPOGRAPHY
+========================= */
 
 h1 {
   font-size: 2rem;
-  margin: 1.25rem 0 0.75rem;
+  margin: 0 0 0.5rem 0;
   color: #0f0;
   user-select: none;
   letter-spacing: 2px;
@@ -68,33 +115,36 @@ h1 {
   word-break: break-word;
 }
 
+h2,
+h3 {
+  color: #0f0;
+  margin-top: 0;
+}
+
+.post-form h2,
+.feed-header h2 {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+}
+
 .site-subtitle {
   font-size: 0.75rem;
   color: #8cff8c;
   margin: 0;
   line-height: 1.6;
+  text-align: center;
 }
 
-/* Main container */
-.container {
-  width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
+/* =========================
+   CARD SECTIONS
+========================= */
 
-.social-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Cards */
 .social-card,
 .post-form,
 .feed-header,
 #posts,
-.controls-box {
+.controls-box,
+.apparoleksi-box {
   background: #111;
   border: 3px solid #0f0;
   border-radius: 12px;
@@ -102,22 +152,84 @@ h1 {
   box-sizing: border-box;
 }
 
-.social-card,
 .post-form,
 .feed-header,
-.controls-box {
+.controls-box,
+.apparoleksi-box {
   padding: 1rem;
 }
 
-.post-form h2,
-.feed-header h2 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  color: #0f0;
+#posts {
+  padding: 1rem;
+  list-style: none;
+  width: 100%;
 }
 
-/* Online count */
+/* =========================
+   CONTROLS PANEL
+========================= */
+
+.controls-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.controls-top,
+.controls-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mode-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.mode-btn {
+  font-family: monospace;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 4px;
+  border: 2px solid #000;
+  background-color: #cfd8cc;
+  color: #000;
+  box-shadow: 2px 2px 0 #444;
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+  width: 100%;
+  text-align: center;
+  margin: 0;
+}
+
+.mode-btn:hover {
+  background-color: #dfeedd;
+  box-shadow: 1px 1px 0 #333;
+  transform: translate(1px, 1px);
+}
+
+.mode-btn.active {
+  background-color: #93e993;
+  box-shadow: inset 1px 1px 0 #3a3;
+  font-weight: bold;
+  color: #000;
+}
+
+#mode-apparos {
+  background-color: #eaffea;
+  color: #008000;
+  border-color: #008000;
+}
+
+#mode-nixtop {
+  background-color: #ffeeee;
+  color: #cc0000;
+  border-color: #cc0000;
+}
+
 #online-count {
   font-family: monospace;
   font-size: 0.95rem;
@@ -128,6 +240,9 @@ h1 {
   border-radius: 4px;
   text-align: center;
   display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
   box-shadow: 0 0 4px #00ff00;
   letter-spacing: 0.05em;
   animation: flicker 1.5s infinite;
@@ -142,27 +257,37 @@ h1 {
   100% { opacity: 1; }
 }
 
-/* Controls layout */
-.controls-box {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+#apparos-near-btn {
+  width: 100%;
+  background: #222;
+  color: #ff00ff;
+  border: 2px solid #ff00ff;
+  box-shadow: 0 0 6px #ff00ff;
 }
 
-.controls-top,
-.controls-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+#apparos-near-btn:hover {
+  background: #ff00ff;
+  color: black;
 }
 
-/* Form */
+#apparos-message {
+  color: #0f0;
+  font-weight: bold;
+  line-height: 1.6;
+  font-size: 0.75rem;
+}
+
+/* =========================
+   FORM / INPUTS
+========================= */
+
 .post-form {
   width: 100%;
 }
 
 textarea,
-input[type="file"] {
+input[type="file"],
+#wordle-input {
   font-family: 'Press Start 2P', monospace;
   font-size: 13px;
   background: #000;
@@ -213,55 +338,10 @@ button:active {
   transform: translateY(1px);
 }
 
-/* Mode toggle */
-.mode-toggle {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+/* =========================
+   IMAGE OPTIONS
+========================= */
 
-.mode-btn {
-  font-family: monospace;
-  font-size: 0.85rem;
-  padding: 8px 14px;
-  border-radius: 4px;
-  border: 2px solid #000;
-  background-color: #cfd8cc;
-  color: #000;
-  box-shadow: 2px 2px 0 #444;
-  cursor: pointer;
-  transition: all 0.1s ease-in-out;
-  width: 180px;
-  text-align: center;
-}
-
-.mode-btn:hover {
-  background-color: #dfeedd;
-  box-shadow: 1px 1px 0 #333;
-  transform: translate(1px, 1px);
-}
-
-.mode-btn.active {
-  background-color: #93e993;
-  box-shadow: inset 1px 1px 0 #3a3;
-  font-weight: bold;
-  color: #000;
-}
-
-#mode-apparos {
-  background-color: #eaffea;
-  color: #008000;
-  border-color: #008000;
-}
-
-#mode-nixtop {
-  background-color: #ffeeee;
-  color: #cc0000;
-  border-color: #cc0000;
-}
-
-/* Image options */
 .image-source-options {
   display: flex;
   flex-direction: column;
@@ -297,36 +377,13 @@ button:active {
   font-size: 0.72rem;
 }
 
-/* Appares button */
-#apparos-near-btn {
-  background: #222;
-  color: #ff00ff;
-  border: 2px solid #ff00ff;
-  box-shadow: 0 0 6px #ff00ff;
-}
+/* =========================
+   FEED
+========================= */
 
-#apparos-near-btn:hover {
-  background: #ff00ff;
-  color: black;
-}
-
-#apparos-message {
-  color: #0f0;
-  font-weight: bold;
-  line-height: 1.6;
-  font-size: 0.75rem;
-}
-
-/* Feed */
 .feed-column {
   width: 100%;
   overflow-wrap: break-word;
-}
-
-#posts {
-  padding: 1rem;
-  list-style: none;
-  width: 100%;
 }
 
 .post {
@@ -364,7 +421,6 @@ button:active {
   box-shadow: 0 0 8px #0a0;
 }
 
-/* Votes */
 .votes {
   display: flex;
   gap: 12px;
@@ -395,419 +451,11 @@ button:active {
   box-shadow: 0 0 12px #0aaa;
 }
 
-/* Drawing modal */
-#draw-modal {
-  display: none;
-  position: fixed;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: black;
-  padding: 12px;
-  border: 2px solid green;
-  z-index: 1000;
-  width: min(90vw, 360px);
-  box-sizing: border-box;
-  box-shadow: 0 0 16px #0f0;
-}
-
-#draw-canvas {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  border: 2px solid green;
-  background: black;
-  display: block;
-  image-rendering: pixelated;
-  box-sizing: border-box;
-}
-
-.draw-top-buttons,
-.draw-bottom-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.draw-top-buttons button,
-.draw-bottom-buttons button {
-  flex: 1 1 45%;
-  text-align: center;
-}
-
-/* Effects */
-@keyframes border-glow {
-  0% { border-color: #0f0; }
-  50% { border-color: #0a0; }
-  100% { border-color: #0f0; }
-}
-
-.post-form,
-.post,
-textarea {
-  animation: border-glow 3s infinite;
-}
-
-/* Utility */
-.nokia-button {
-  display: inline-block;
-  padding: 6px 12px;
-  background-color: black;
-  color: lime;
-  font-family: 'Courier New', monospace;
-  border: 2px solid lime;
-  text-decoration: none;
-  margin-top: 10px;
-}
-
-.nokia-button:hover {
-  background-color: lime;
-  color: black;
-}
-
-.trigger-apparo {
-  background-color: #000;
-  color: #00ffcc;
-  border: 2px solid #00ffcc;
-  box-shadow: 0 0 6px #00ffee;
-}
-
-/* Visibility toggle */
-.visibility-toggle {
-  margin-top: 8px;
-  font-size: 12px;
-}
-
-.visibility-toggle label {
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-/* Rooms */
-#room-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1rem;
-  width: 100%;
-  max-width: 800px;
-  margin: 2rem auto;
-}
-
-.room-card {
-  background: #000;
-  border: 2px solid #0f0;
-  color: #0f0;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 0.75rem;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 0 8px #0f0;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.room-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 12px #0f0;
-}
-
-/* Nixtop mode */
-.nixtop-active body {
-  background-color: #0a0000;
-  color: #ff0033;
-}
-
-.nixtop-active h1,
-.nixtop-active .site-subtitle {
-  color: #ff0033;
-  text-shadow: 0 0 6px #ff0033;
-}
-
-.nixtop-active .post-form,
-.nixtop-active #posts,
-.nixtop-active .feed-header,
-.nixtop-active .controls-box,
-.nixtop-active .social-card {
-  background-color: #140000;
-  border-color: #ff0033;
-  box-shadow: 0 0 10px #ff0033aa;
-  color: #ff0033;
-  text-shadow: 0 0 2px #ff0033;
-}
-
-.nixtop-active .post {
-  background: #110000;
-  border: 2px solid #ff0033;
-  box-shadow: inset 0 0 6px #ff0033aa, 0 0 8px #ff0033aa;
-}
-
-.nixtop-active .post p {
-  color: #ff0033;
-  text-shadow: 0 0 2px #ff3366;
-}
-
-.nixtop-active .post img {
-  border: 2px solid #ff0033;
-  filter: grayscale(100%) contrast(140%);
-  box-shadow: 0 0 6px #ff0033;
-}
-
-.nixtop-active textarea,
-.nixtop-active input[type="file"] {
-  background: #000;
-  border: 2px solid #ff0033;
-  color: #ff0033;
-  box-shadow: inset 0 0 6px #ff0033;
-}
-
-.nixtop-active button,
-.nixtop-active .vote-btn {
-  background: #330000;
-  color: #ff0033;
-  border: 2px solid #ff0033;
-  text-shadow: 0 0 2px #ff0033;
-  box-shadow: 0 0 6px #ff0033;
-}
-
-.nixtop-active button:hover,
-.nixtop-active .vote-btn:hover {
-  background: #440000;
-  color: #fff;
-  box-shadow: 0 0 10px #ff3366;
-}
-
-.nixtop-active #marquee-container {
-  background-color: #1a0000;
-  border-color: #ff0033;
-  color: #ff0033;
-  box-shadow: 0 2px 10px #ff0033;
-}
-
-.nixtop-active #online-count {
-  background-color: #2a0000;
-  color: #ff0033;
-  border-color: #ff0033;
-  box-shadow: 0 0 6px #ff0033;
-}
-
-.nixtop-active .image-source-options label,
-.nixtop-active input[type="radio"],
-.nixtop-active input[type="file"],
-.nixtop-active button,
-.nixtop-active textarea,
-.nixtop-active .nokia-button {
-  background: #1a0000 !important;
-  color: #ff0033 !important;
-  border-color: #ff0033 !important;
-  box-shadow: 0 0 6px #ff0033 !important;
-}
-
-.nixtop-active .nokia-button:hover {
-  background: #ff0033;
-  color: black;
-}
-
-/* Mobile */
-@media (max-width: 700px) {
-  body {
-    padding: 60px 0.75rem 1.25rem;
-  }
-
-  h1 {
-    font-size: 1.35rem;
-    margin-top: 1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .site-subtitle {
-    font-size: 0.62rem;
-  }
-
-  .social-card,
-  .post-form,
-  .feed-header,
-  .controls-box,
-  #posts {
-    padding: 0.85rem;
-  }
-
-  textarea,
-  input[type="file"] {
-    font-size: 12px;
-    padding: 0.6rem;
-  }
-
-  button,
-  .vote-btn {
-    font-size: 11px;
-    padding: 0.55rem 0.7rem;
-  }
-
-  .mode-toggle {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .mode-btn {
-    width: 100%;
-  }
-
-  #online-count {
-    width: fit-content;
-    max-width: 100%;
-  }
-
-  .draw-top-buttons button,
-  .draw-bottom-buttons button {
-    flex: 1 1 100%;
-  }
-}
-/* ===== TOP AREA LAYOUT ===== */
-
-.top-area {
-  width: 100%;
-  max-width: 760px;
-  margin: 5.5rem auto 1.5rem auto;
-  padding: 0 1rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.title-area {
-  width: 100%;
-  min-width: 0;
-}
-
-.top-right-panel {
-  width: 100%;
-  max-width: 760px;
-  background: #111;
-  border: 3px solid #0f0;
-  border-radius: 12px;
-  box-shadow: 0 0 15px #0f0aa0;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-
-/* keep title left on desktop */
-h1 {
-  margin-top: 0;
-  margin-bottom: 0;
-  text-align: left;
-}
-
-/* main content a bit wider */
-.container.social-layout {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  box-sizing: border-box;
-}
-
-/* feed area under title, not under right panel */
-.post-form,
-.feed-column {
-  width: 100%;
-  max-width: 760px;
-}
-
-/* top-right controls styling */
-.controls-box {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.mode-toggle {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: stretch;
-}
-
-.mode-btn {
-  width: 100%;
-  margin: 0;
-}
-
-#online-count {
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0;
-}
-
-#apparos-near-btn {
-  width: 100%;
-}
-
-/* ===== MOBILE ===== */
-@media (max-width: 900px) {
-  .top-area {
-    flex-direction: column;
-    align-items: center;
-    margin: 5rem auto 1.5rem auto;
-    gap: 1rem;
-  }
-
-  .title-area {
-    width: 100%;
-  }
-
-  .top-right-panel {
-    width: 100%;
-    max-width: 760px;
-  }
-
-  h1 {
-    text-align: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .post-form,
-  .feed-column {
-    max-width: 760px;
-  }
-}
-
-@media (max-width: 700px) {
-  .top-area {
-    padding: 0 0.5rem;
-    margin-top: 4.5rem;
-  }
-
-  .container.social-layout {
-    padding: 0 0.5rem;
-  }
-
-  .top-right-panel {
-    padding: 0.85rem;
-  }
-
-  .mode-toggle {
-    gap: 0.5rem;
-  }
-
-  .mode-btn,
-  #apparos-near-btn,
-  #online-count {
-    width: 100%;
-  }
-}
-/* ===== APPAROLEKSI TIS IMERAS ===== */
+/* =========================
+   APPAROLEKSI
+========================= */
 
 .apparoleksi-box {
-  background: #111;
-  border: 3px solid #0f0;
-  border-radius: 12px;
-  box-shadow: 0 0 15px #0f0aa0;
-  padding: 1rem;
-  box-sizing: border-box;
   width: 100%;
   margin-top: 1rem;
 }
@@ -872,12 +520,6 @@ h1 {
   border-color: #333;
 }
 
-#wordle-input {
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 0.75rem;
-}
-
 #wordle-submit {
   width: 100%;
   margin-top: 0.5rem;
@@ -898,7 +540,6 @@ h1 {
   line-height: 1.4;
 }
 
-/* Greek keyboard */
 .greek-keyboard {
   display: flex;
   flex-direction: column;
@@ -925,11 +566,231 @@ h1 {
   min-width: 64px;
 }
 
-/* Nixtop mode support */
+/* =========================
+   DRAW MODAL
+========================= */
+
+#draw-modal {
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: black;
+  padding: 12px;
+  border: 2px solid green;
+  z-index: 1000;
+  width: min(90vw, 360px);
+  box-sizing: border-box;
+  box-shadow: 0 0 16px #0f0;
+}
+
+#draw-canvas {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border: 2px solid green;
+  background: black;
+  display: block;
+  image-rendering: pixelated;
+  box-sizing: border-box;
+}
+
+.draw-top-buttons,
+.draw-bottom-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.draw-top-buttons button,
+.draw-bottom-buttons button {
+  flex: 1 1 45%;
+  text-align: center;
+}
+
+/* =========================
+   EFFECTS / UTILITY
+========================= */
+
+@keyframes border-glow {
+  0% { border-color: #0f0; }
+  50% { border-color: #0a0; }
+  100% { border-color: #0f0; }
+}
+
+.post-form,
+.post,
+textarea {
+  animation: border-glow 3s infinite;
+}
+
+.nokia-button {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: black;
+  color: lime;
+  font-family: 'Courier New', monospace;
+  border: 2px solid lime;
+  text-decoration: none;
+  margin-top: 10px;
+}
+
+.nokia-button:hover {
+  background-color: lime;
+  color: black;
+}
+
+.trigger-apparo {
+  background-color: #000;
+  color: #00ffcc;
+  border: 2px solid #00ffcc;
+  box-shadow: 0 0 6px #00ffee;
+}
+
+.visibility-toggle {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.visibility-toggle label {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+/* =========================
+   ROOMS
+========================= */
+
+#room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+}
+
+.room-card {
+  background: #000;
+  border: 2px solid #0f0;
+  color: #0f0;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 0 8px #0f0;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.room-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px #0f0;
+}
+
+/* =========================
+   NIXTOP MODE
+========================= */
+
+.nixtop-active body {
+  background-color: #0a0000;
+  color: #ff0033;
+}
+
+.nixtop-active h1,
+.nixtop-active .site-subtitle {
+  color: #ff0033;
+  text-shadow: 0 0 6px #ff0033;
+}
+
+.nixtop-active .post-form,
+.nixtop-active #posts,
+.nixtop-active .feed-header,
+.nixtop-active .controls-box,
+.nixtop-active .social-card,
+.nixtop-active .top-right-panel,
 .nixtop-active .apparoleksi-box {
   background-color: #140000;
   border-color: #ff0033;
   box-shadow: 0 0 10px #ff0033aa;
+  color: #ff0033;
+  text-shadow: 0 0 2px #ff0033;
+}
+
+.nixtop-active .post {
+  background: #110000;
+  border: 2px solid #ff0033;
+  box-shadow: inset 0 0 6px #ff0033aa, 0 0 8px #ff0033aa;
+}
+
+.nixtop-active .post p {
+  color: #ff0033;
+  text-shadow: 0 0 2px #ff3366;
+}
+
+.nixtop-active .post img {
+  border: 2px solid #ff0033;
+  filter: grayscale(100%) contrast(140%);
+  box-shadow: 0 0 6px #ff0033;
+}
+
+.nixtop-active textarea,
+.nixtop-active input[type="file"],
+.nixtop-active #wordle-input {
+  background: #000;
+  border: 2px solid #ff0033;
+  color: #ff0033;
+  box-shadow: inset 0 0 6px #ff0033;
+}
+
+.nixtop-active button,
+.nixtop-active .vote-btn {
+  background: #330000;
+  color: #ff0033;
+  border: 2px solid #ff0033;
+  text-shadow: 0 0 2px #ff0033;
+  box-shadow: 0 0 6px #ff0033;
+}
+
+.nixtop-active button:hover,
+.nixtop-active .vote-btn:hover {
+  background: #440000;
+  color: #fff;
+  box-shadow: 0 0 10px #ff3366;
+}
+
+.nixtop-active #marquee-container {
+  background-color: #1a0000;
+  border-color: #ff0033;
+  color: #ff0033;
+  box-shadow: 0 2px 10px #ff0033;
+}
+
+.nixtop-active #online-count {
+  background-color: #2a0000;
+  color: #ff0033;
+  border-color: #ff0033;
+  box-shadow: 0 0 6px #ff0033;
+}
+
+.nixtop-active .image-source-options label,
+.nixtop-active input[type="radio"],
+.nixtop-active input[type="file"],
+.nixtop-active button,
+.nixtop-active textarea,
+.nixtop-active .nokia-button {
+  background: #1a0000 !important;
+  color: #ff0033 !important;
+  border-color: #ff0033 !important;
+  box-shadow: 0 0 6px #ff0033 !important;
+}
+
+.nixtop-active .nokia-button:hover {
+  background: #ff0033;
+  color: black;
 }
 
 .nixtop-active .apparoleksi-box h3,
@@ -962,8 +823,88 @@ h1 {
   border-color: #552222;
 }
 
-/* Mobile */
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 900px) {
+  .top-area {
+    margin: 5rem auto 1.5rem auto;
+    gap: 1rem;
+  }
+
+  .title-area,
+  .top-right-panel,
+  .post-form,
+  .feed-column {
+    width: 100%;
+    max-width: 760px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+}
+
 @media (max-width: 700px) {
+  body {
+    padding: 60px 0.75rem 1.25rem;
+  }
+
+  .top-area {
+    padding: 0 0.5rem;
+    margin-top: 4.5rem;
+  }
+
+  .container.social-layout {
+    padding: 0 0.5rem;
+  }
+
+  .top-right-panel,
+  .post-form,
+  .feed-header,
+  .controls-box,
+  .apparoleksi-box,
+  #posts {
+    padding: 0.85rem;
+  }
+
+  h1 {
+    font-size: 1.35rem;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  .site-subtitle {
+    font-size: 0.62rem;
+  }
+
+  textarea,
+  input[type="file"],
+  #wordle-input {
+    font-size: 12px;
+    padding: 0.6rem;
+  }
+
+  button,
+  .vote-btn {
+    font-size: 11px;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .mode-btn,
+  #apparos-near-btn,
+  #online-count,
+  #wordle-submit {
+    width: 100%;
+  }
+
+  .draw-top-buttons button,
+  .draw-bottom-buttons button {
+    flex: 1 1 100%;
+  }
+
   .greek-key {
     flex: 1 1 calc(20% - 6px);
     min-width: 0;
