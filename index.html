@@ -31,6 +31,66 @@
       <div id="apparos-message" style="margin-top: 10px; display: none; color: #0f0; font-weight: bold;">
         OI APPARO POU ENA SOU DIKSO APPARES
       </div>
+
+      <!-- APPAROLEKSI TIS IMERAS -->
+      <section class="apparoleksi-box">
+        <h3>🧩 APPAROLEKSI TIS IMERAS</h3>
+
+        <div id="wordle-length">🔤 loading...</div>
+
+        <div id="wordle-grid"></div>
+
+        <input
+          type="text"
+          id="wordle-input"
+          placeholder="γράψε λέξη ρε apparo"
+          autocomplete="off"
+        />
+
+        <div class="keyboard-note">πάτα γράμματα στα ελληνικά 👇</div>
+
+        <div id="greek-keyboard" class="greek-keyboard">
+          <div class="keyboard-row">
+            <button type="button" class="greek-key" data-letter="α">α</button>
+            <button type="button" class="greek-key" data-letter="β">β</button>
+            <button type="button" class="greek-key" data-letter="γ">γ</button>
+            <button type="button" class="greek-key" data-letter="δ">δ</button>
+            <button type="button" class="greek-key" data-letter="ε">ε</button>
+            <button type="button" class="greek-key" data-letter="ζ">ζ</button>
+            <button type="button" class="greek-key" data-letter="η">η</button>
+            <button type="button" class="greek-key" data-letter="θ">θ</button>
+            <button type="button" class="greek-key" data-letter="ι">ι</button>
+            <button type="button" class="greek-key" data-letter="κ">κ</button>
+          </div>
+
+          <div class="keyboard-row">
+            <button type="button" class="greek-key" data-letter="λ">λ</button>
+            <button type="button" class="greek-key" data-letter="μ">μ</button>
+            <button type="button" class="greek-key" data-letter="ν">ν</button>
+            <button type="button" class="greek-key" data-letter="ξ">ξ</button>
+            <button type="button" class="greek-key" data-letter="ο">ο</button>
+            <button type="button" class="greek-key" data-letter="π">π</button>
+            <button type="button" class="greek-key" data-letter="ρ">ρ</button>
+            <button type="button" class="greek-key" data-letter="σ">σ</button>
+            <button type="button" class="greek-key" data-letter="τ">τ</button>
+            <button type="button" class="greek-key" data-letter="υ">υ</button>
+          </div>
+
+          <div class="keyboard-row">
+            <button type="button" class="greek-key" data-letter="φ">φ</button>
+            <button type="button" class="greek-key" data-letter="χ">χ</button>
+            <button type="button" class="greek-key" data-letter="ψ">ψ</button>
+            <button type="button" class="greek-key" data-letter="ω">ω</button>
+            <button type="button" class="greek-key" data-letter="ς">ς</button>
+            <button type="button" class="greek-key keyboard-action" id="wordle-backspace">⌫</button>
+            <button type="button" class="greek-key keyboard-action" id="wordle-clear">clear</button>
+          </div>
+        </div>
+
+        <button type="button" id="wordle-submit">μαντέψε</button>
+
+        <div id="wordle-message"></div>
+      </section>
     </aside>
   </div>
 
