@@ -664,3 +664,139 @@ textarea {
     flex: 1 1 100%;
   }
 }
+/* ===== TOP AREA LAYOUT ===== */
+
+.top-area {
+  width: 100%;
+  max-width: 1200px;
+  margin: 5.5rem auto 2rem auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-right-panel {
+  width: 320px;
+  max-width: 100%;
+  flex-shrink: 0;
+  background: #111;
+  border: 3px solid #0f0;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #0f0aa0;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* keep title left on desktop */
+h1 {
+  margin-top: 0;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+/* main content a bit wider */
+.container.social-layout {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+/* feed area under title, not under right panel */
+.post-form,
+.feed-column {
+  width: 100%;
+  max-width: 760px;
+}
+
+/* top-right controls styling */
+.controls-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mode-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.mode-btn {
+  width: 100%;
+  margin: 0;
+}
+
+#online-count {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+#apparos-near-btn {
+  width: 100%;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 900px) {
+  .top-area {
+    flex-direction: column;
+    align-items: center;
+    margin: 5rem auto 1.5rem auto;
+    gap: 1rem;
+  }
+
+  .title-area {
+    width: 100%;
+  }
+
+  .top-right-panel {
+    width: 100%;
+    max-width: 760px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-form,
+  .feed-column {
+    max-width: 760px;
+  }
+}
+
+@media (max-width: 700px) {
+  .top-area {
+    padding: 0 0.5rem;
+    margin-top: 4.5rem;
+  }
+
+  .container.social-layout {
+    padding: 0 0.5rem;
+  }
+
+  .top-right-panel {
+    padding: 0.85rem;
+  }
+
+  .mode-toggle {
+    gap: 0.5rem;
+  }
+
+  .mode-btn,
+  #apparos-near-btn,
+  #online-count {
+    width: 100%;
+  }
+}
